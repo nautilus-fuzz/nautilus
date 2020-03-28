@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+  "forksrv",
+  "grammartec",
+  "fuzzer",
+]
+
+default-members = ["fuzzer"]

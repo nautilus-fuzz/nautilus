@@ -1,0 +1,18 @@
+[package]
+name = "grammartec"
+version = "0.1.0"
+authors = ["coco <coco@hexgolems.com>"]
+
+[dependencies]
+regex = "0.2"
+lazy_static= "*"
+rand = "^0.4"
+hash_by_ref = "0.1.0"
+forksrv = {path = "../forksrv"}
+regex_mutator = {path = "../regex_mutator"}
+regex-syntax = "0.6.17"
+serde_derive = "1.0"
+serde = "1.0"
+loaded_dice = "*"
+num = "*"
+pyo3="*"

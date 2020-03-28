@@ -1,0 +1,27 @@
+Config(
+	//You probably want to change the follwoing options
+	//File Paths
+	path_to_bin_target:                     "./test",
+	arguments: 				[ "@@"],	//"@@" will be exchanged with the path of a file containing the current input
+
+	path_to_grammar:                        "grammars/grammar_py_example.py",
+	path_to_workdir:                        "/tmp/workdir",
+
+	number_of_threads:			1,
+	timeout_in_millis:			200,
+
+
+	//The rest of the options are probably not something you want to change... 
+	//Forkserver parameter
+	bitmap_size:				65536, //1<<16
+
+	//Thread Settings:
+	thread_size: 				4194304,
+	
+	//Mutation Settings
+	number_of_generate_inputs:		100,	//see main.rs fuzzing_thread 
+	max_tree_size:				1000, 	//see state.rs generate random
+	number_of_deterministic_mutations:	1,	//see main.rs process_input
+	
+
+)

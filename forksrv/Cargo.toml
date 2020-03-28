@@ -1,0 +1,20 @@
+[package]
+name = "forksrv"
+version = "0.1.0"
+authors = ["coco <coco@hexgolems.com>", "daniel daniel.teuchert@rub.de"]
+
+[dependencies]
+nix = "0.15.0"
+time = "0.1"
+subprocess = "0.1.10"
+regex = "0.2"
+lazy_static = "*"
+libc = "*"
+quick-error = "*"
+tempfile = "3.1.0"
+rand = "^0.3"
+serde_derive = "1.0"
+serde = "1.0"
+byteorder = "*"
+snafu = "0.6.0"
+timeout-readwrite = "*"
