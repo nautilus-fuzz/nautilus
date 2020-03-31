@@ -31,8 +31,8 @@ You specify a grammar using rules such as `EXPR -> EXPR + EXPR` or `EXPR -> NUM`
 ## Setup
 ```bash
 # checkout the git
-git clone 'git@github.com:nautilus-fuzz/'
-cd nautilus_fork
+git clone 'git@github.com:nautilus-fuzz/nautilus.git'
+cd nautilus
 /path/to/AFLplusplus/afl-clang-fast test.c -o test #afl-clang-fast as provided by AFL
 
 # all arguments can also be set using the config.ron file
