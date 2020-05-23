@@ -16,7 +16,9 @@
 
 use std::collections::HashMap;
 
-use rand::{seq, thread_rng, Rng};
+
+use rand::{thread_rng, Rng};
+use rand::seq::IteratorRandom;
 
 use newtypes::{NTermID, RuleID};
 use pyo3::prelude::PyObject;
@@ -287,18 +289,10 @@ impl Context {
             100 * 0
         };
 
-        if let Ok(mut opts) = seq::sample_iter(
-            &mut thread_rng(),
-            self.get_applicable_rules(max_len, nt, p_include_short_rules),
-            1,
-        ) {
-            *opts.pop().unwrap()
-        } else if let Ok(mut opts) = seq::sample_iter(
-            &mut thread_rng(),
-            self.get_applicable_rules(max_len, nt, 100),
-            1,
-        ) {
-            *opts.pop().unwrap()
+        if let Some(opt) = self.get_applicable_rules(max_len, nt, p_include_short_rules).choose(&mut thread_rng())  {
+            *opt
+        } else if let Some(opt) = self.get_applicable_rules(max_len, nt, 100).choose(&mut thread_rng()) {
+            *opt
         } else {
             panic!(
                 "there is no way to derive {} within {} steps",

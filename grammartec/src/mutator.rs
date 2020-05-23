@@ -17,6 +17,7 @@
 extern crate rand;
 
 use rand::Rng;
+use rand::seq::SliceRandom;
 
 use std::collections::HashSet;
 use std::mem;
@@ -217,7 +218,7 @@ impl Mutator {
         F: FnMut(&TreeMutation, &Context) -> Result<(), SubprocessError>,
     {
         let max_len_of_recursions = 2 << rand::thread_rng().gen_range(1, 11);
-        if let Some(recursion_info) = rand::thread_rng().choose_mut(recursions) {
+        if let Some(recursion_info) = recursions.choose_mut(&mut rand::thread_rng()) {
             let recursion = recursion_info.get_random_recursion_pair();
             let recursion_len_pre = recursion.1.to_i() - recursion.0.to_i();
             let recursion_len_total =

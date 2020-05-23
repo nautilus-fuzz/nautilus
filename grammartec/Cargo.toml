@@ -4,15 +4,15 @@ version = "0.1.0"
 authors = ["coco <coco@hexgolems.com>"]
 
 [dependencies]
-regex = "0.2"
+regex = "1.3.7"
 lazy_static= "*"
-rand = "^0.4"
+rand = "0.7.3"
 hash_by_ref = "0.1.0"
 forksrv = {path = "../forksrv"}
 regex_mutator = {path = "../regex_mutator"}
 regex-syntax = "0.6.17"
 serde_derive = "1.0"
 serde = "1.0"
-loaded_dice = "*"
+loaded_dice = "0.2"
 num = "*"
 pyo3="*"
