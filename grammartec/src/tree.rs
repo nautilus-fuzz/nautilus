@@ -26,7 +26,9 @@ use pyo3::prelude::{PyObject, PyResult, Python};
 use pyo3::types::{PyBytes, PyString, PyTuple};
 use pyo3::FromPyObject;
 use recursion_info::RecursionInfo;
-use rule::{PlainRule, Rule, RuleChild, RuleIDOrCustom, ScriptRule};
+use rule::{PlainRule, Rule, RuleChild, RuleIDOrCustom, ScriptRule, RegExpRule};
+use rand::thread_rng;
+use rand::Rng;
 
 enum UnparseStep<'dat> {
     Term(&'dat [u8]),
@@ -346,9 +348,17 @@ impl Tree {
                 ctx.get_rule(ruleid).generate(self, &ctx, max_len);
                 self.sizes[0] = self.rules.len();
             }
-            Rule::RegExp(..) => {
-                unreachable!();
-            } //TODO implement me
+            Rule::RegExp(RegExpRule { hir, .. }) => {
+                let rid = RuleIDOrCustom::Custom(
+                    ruleid,
+                    regex_mutator::generate(hir, thread_rng().gen::<u64>()),
+                );
+                self.truncate();
+                self.rules.push(rid);
+                self.sizes.push(0);
+                self.paren.push(NodeID::from(0));
+                self.sizes[0] = self.rules.len();
+            }
         }
     }
 
