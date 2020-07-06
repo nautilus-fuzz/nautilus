@@ -36,7 +36,7 @@ cd nautilus
 /path/to/AFLplusplus/afl-clang-fast test.c -o test #afl-clang-fast as provided by AFL
 
 # all arguments can also be set using the config.ron file
-cargo run --release -- -g grammars/grammar_py_exmaple.py -o /tmp/workdir -- ./test @@
+cargo run --release -- -g grammars/grammar_py_example.py -o /tmp/workdir -- ./test @@
 
 # or if you want to use QEMU mode:
 cargo run /path/to/AFLplusplus/afl-qemu-trace -- ./test_bin @@
