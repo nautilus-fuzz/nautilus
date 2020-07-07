@@ -17,11 +17,12 @@ Config(
 
 	//Thread Settings:
 	thread_size: 				4194304,
+
+	hide_output: true, //hide stdout of the target program. Sometimes usefull for debuging
 	
 	//Mutation Settings
 	number_of_generate_inputs:		100,	//see main.rs fuzzing_thread 
 	max_tree_size:				1000, 	//see state.rs generate random
 	number_of_deterministic_mutations:	1,	//see main.rs process_input
-	
 
 )

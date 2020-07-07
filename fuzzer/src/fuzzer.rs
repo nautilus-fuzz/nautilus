@@ -78,13 +78,14 @@ impl Fuzzer {
         args: Vec<String>,
         global_state: Arc<Mutex<GlobalSharedState>>,
         work_dir: String,
+        hide_output: bool,
         timeout_in_millis: u64,
         bitmap_size: usize,
     ) -> Result<Self, SubprocessError> {
         let fs = ForkServer::new(
             path.clone(),
             args.clone(),
-            true,
+            hide_output,
             timeout_in_millis,
             bitmap_size,
         );
@@ -353,7 +354,7 @@ impl Fuzzer {
             .get_mut(&is_crash)
             .expect("Bitmap missing! Maybe shared state was not initialized correctly?");
 
-        for (i, elem) in shared_bitmap.iter_mut().enumerate() {
+        for (i, elem) in shared_bitmap.iter_mut().enumerate() {  
             if (run_bitmap[i] != 0) && (*elem == 0) {
                 *elem |= run_bitmap[i];
                 res.push(i);

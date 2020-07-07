@@ -104,6 +104,7 @@ fn fuzzing_thread(
         args,
         global_state.clone(),
         config.path_to_workdir.clone(),
+        config.hide_output,
         config.timeout_in_millis.clone(),
         config.bitmap_size.clone(),
     )
@@ -124,6 +125,7 @@ fn fuzzing_thread(
                     args,
                     global_state.clone(),
                     config.path_to_workdir.clone(),
+                    config.hide_output,
                     config.timeout_in_millis.clone(),
                     config.bitmap_size.clone(),
                 )
@@ -148,6 +150,7 @@ fn fuzzing_thread(
                         args,
                         global_state.clone(),
                         config.path_to_workdir.clone(),
+                        config.hide_output,
                         config.timeout_in_millis.clone(),
                         config.bitmap_size.clone(),
                     )

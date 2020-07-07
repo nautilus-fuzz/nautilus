@@ -27,4 +27,5 @@ pub struct Config {
     pub path_to_grammar: String,
     pub path_to_workdir: String,
     pub arguments: Vec<String>,
+    pub hide_output: bool,
 }
