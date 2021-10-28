@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use rand::Rng;
+use rand::rngs::StdRng;
 use rand::thread_rng;
 use rand::SeedableRng;
-use rand::rngs::StdRng;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -99,7 +98,10 @@ impl RecursionInfo {
         for v in weights.iter_mut() {
             *v /= norm;
         }
-        return LoadedDiceSampler::new(weights, StdRng::from_rng(thread_rng()).expect("RAND_1769941938"));
+        return LoadedDiceSampler::new(
+            weights,
+            StdRng::from_rng(thread_rng()).expect("RAND_1769941938"),
+        );
     }
 
     pub fn get_random_recursion_pair(&mut self) -> (NodeID, NodeID) {

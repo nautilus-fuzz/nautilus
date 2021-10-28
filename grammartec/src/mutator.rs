@@ -16,8 +16,8 @@
 
 extern crate rand;
 
-use rand::Rng;
 use rand::seq::SliceRandom;
+use rand::Rng;
 
 use std::collections::HashSet;
 use std::mem;
@@ -70,7 +70,7 @@ impl Mutator {
                     bits,
                     tester,
                 )? {
-                    mem::replace(tree, t);
+                    mem::drop(mem::replace(tree, t));
                 }
             }
             i += 1;
@@ -101,7 +101,7 @@ impl Mutator {
                 if let Some(t) =
                     Mutator::test_and_convert(tree, parent, tree, n, ctx, bits, tester)?
                 {
-                    mem::replace(tree, t);
+                    mem::drop(mem::replace(tree, t));
                     i = parent.into();
                 }
             }

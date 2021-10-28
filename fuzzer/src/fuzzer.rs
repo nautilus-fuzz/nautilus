@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 extern crate time as othertime;
 use othertime::strftime;
 
@@ -354,7 +353,7 @@ impl Fuzzer {
             .get_mut(&is_crash)
             .expect("Bitmap missing! Maybe shared state was not initialized correctly?");
 
-        for (i, elem) in shared_bitmap.iter_mut().enumerate() {  
+        for (i, elem) in shared_bitmap.iter_mut().enumerate() {
             if (run_bitmap[i] != 0) && (*elem == 0) {
                 *elem |= run_bitmap[i];
                 res.push(i);

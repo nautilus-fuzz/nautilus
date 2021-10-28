@@ -25,10 +25,10 @@ use newtypes::{NTermID, NodeID, RuleID};
 use pyo3::prelude::{PyObject, PyResult, Python};
 use pyo3::types::{PyBytes, PyString, PyTuple};
 use pyo3::FromPyObject;
-use recursion_info::RecursionInfo;
-use rule::{PlainRule, Rule, RuleChild, RuleIDOrCustom, ScriptRule, RegExpRule};
 use rand::thread_rng;
 use rand::Rng;
+use recursion_info::RecursionInfo;
+use rule::{PlainRule, RegExpRule, Rule, RuleChild, RuleIDOrCustom, ScriptRule};
 
 enum UnparseStep<'dat> {
     Term(&'dat [u8]),
@@ -252,10 +252,6 @@ impl Tree {
         return self.rules[n.to_i()].id();
     }
 
-    fn get_rule_or_custom(&self, n: NodeID) -> &RuleIDOrCustom {
-        &self.rules[n.to_i()]
-    }
-
     pub fn subtree_size(&self, n: NodeID) -> usize {
         return self.sizes[n.to_i()];
     }
@@ -381,7 +377,7 @@ impl Tree {
         return Some(ret);
     }
 
-    fn find_recursions_iter(&self, ctx: &Context) -> Vec<(NodeID, NodeID)> {
+    pub fn find_recursions_iter(&self, ctx: &Context) -> Vec<(NodeID, NodeID)> {
         let mut found_recursions = Vec::new();
         //Only search for iterations for up to 10000 nodes
         for i in 1..cmp::min(self.size(), 10000) {

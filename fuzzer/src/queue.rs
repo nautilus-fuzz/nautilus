@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs;
@@ -154,7 +153,7 @@ impl Queue {
             }
             for k in keys {
                 let mut v = self.bit_to_inputs.remove(&k).expect("RAND_2593710501");
-                v.remove_item(&id);
+                v.retain(|&x| x != id);
                 if !v.is_empty() {
                     self.bit_to_inputs.insert(k, v);
                 }
