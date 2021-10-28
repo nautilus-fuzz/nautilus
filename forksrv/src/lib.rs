@@ -75,7 +75,9 @@ impl ForkServer {
             .to_str()
             .expect("temp path should be unicode!")
             .to_string();
-        let args = Some(path.clone()).into_iter().chain(args.into_iter())
+        let args = Some(path.clone())
+            .into_iter()
+            .chain(args.into_iter())
             .map(|s| if s == "@@" { inp_file_path.clone() } else { s })
             .collect::<Vec<_>>();
         let (ctl_out, ctl_in) = nix::unistd::pipe().expect("failed to create ctl_pipe");

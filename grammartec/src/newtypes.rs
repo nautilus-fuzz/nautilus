@@ -85,20 +85,14 @@ impl Step for NodeID {
         }
         return Some(end_i - start_i);
     }
-    fn replace_one(&mut self) -> Self {
-        return NodeID::from(0);
+    fn forward_checked(start: Self, count: usize) -> Option<Self> {
+        match start.0.checked_add(count) {
+            Some(x) => return Some(NodeID::from(x)),
+            None => return None,
+        }
     }
-    fn replace_zero(&mut self) -> Self {
-        return NodeID::from(1);
-    }
-    fn add_one(&self) -> Self {
-        return self.add(1);
-    }
-    fn sub_one(&self) -> Self {
-        return NodeID(self.0 - 1);
-    }
-    fn add_usize(&self, n: usize) -> Option<Self> {
-        match self.0.checked_add(n) {
+    fn backward_checked(start: Self, count: usize) -> Option<Self> {
+        match start.0.checked_sub(count) {
             Some(x) => return Some(NodeID::from(x)),
             None => return None,
         }

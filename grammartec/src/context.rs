@@ -16,9 +16,8 @@
 
 use std::collections::HashMap;
 
-
-use rand::{thread_rng, Rng};
 use rand::seq::IteratorRandom;
+use rand::{thread_rng, Rng};
 
 use newtypes::{NTermID, RuleID};
 use pyo3::prelude::PyObject;
@@ -289,9 +288,15 @@ impl Context {
             100 * 0
         };
 
-        if let Some(opt) = self.get_applicable_rules(max_len, nt, p_include_short_rules).choose(&mut thread_rng())  {
+        if let Some(opt) = self
+            .get_applicable_rules(max_len, nt, p_include_short_rules)
+            .choose(&mut thread_rng())
+        {
             *opt
-        } else if let Some(opt) = self.get_applicable_rules(max_len, nt, 100).choose(&mut thread_rng()) {
+        } else if let Some(opt) = self
+            .get_applicable_rules(max_len, nt, 100)
+            .choose(&mut thread_rng())
+        {
             *opt
         } else {
             panic!(

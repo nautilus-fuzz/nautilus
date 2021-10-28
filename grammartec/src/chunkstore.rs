@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use rand::{thread_rng};
 use rand::seq::IteratorRandom;
+use rand::thread_rng;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::File;
@@ -102,9 +102,7 @@ impl ChunkStore {
                 .filter(move |&&(tid, nid)| self.trees[tid].get_rule_id(nid) != r)
         });
         //The unwrap_or is just a quick and dirty fix to catch Errors from the sampler
-        let selected = relevant.and_then(|iter| {
-            iter.choose(&mut thread_rng())
-        });
+        let selected = relevant.and_then(|iter| iter.choose(&mut thread_rng()));
         return selected.map(|&(tid, nid)| (&self.trees[tid], nid));
     }
 
