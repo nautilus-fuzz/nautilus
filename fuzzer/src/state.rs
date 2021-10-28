@@ -91,7 +91,8 @@ impl FuzzingState {
             while self
                 .cks
                 .is_locked
-                .compare_and_swap(false, true, Ordering::Acquire)
+                .compare_exchange(false, true, Ordering::Acquire, Ordering::Acquire)
+                .is_err()
             {
                 if now.elapsed().as_secs() > 30 {
                     panic!("minimize starved!");
