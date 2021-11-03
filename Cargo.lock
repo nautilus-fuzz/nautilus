@@ -157,7 +157,6 @@ dependencies = [
 name = "grammartec"
 version = "0.1.0"
 dependencies = [
- "forksrv",
  "hash_by_ref",
  "lazy_static",
  "loaded_dice",

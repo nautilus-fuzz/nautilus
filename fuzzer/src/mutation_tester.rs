@@ -91,7 +91,7 @@ fn main() {
         }
         print!("\n");
         let mut mutator = Mutator::new(&ctx);
-        let mut tester = |tree_mut: &TreeMutation, ctx: &Context| {
+        let mut tester = |tree_mut: &TreeMutation, ctx: &Context| -> Result<(), ()> {
             println!("prefix: {:?}", tree_mut.prefix);
             println!("repl: {:?}", tree_mut.repl);
             println!("postfix: {:?}", tree_mut.postfix);

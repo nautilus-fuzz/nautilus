@@ -24,7 +24,6 @@ use std::mem;
 
 use chunkstore::ChunkStore;
 use context::Context;
-use forksrv::newtypes::SubprocessError;
 use newtypes::NodeID;
 use recursion_info::RecursionInfo;
 use rule::RuleIDOrCustom;
@@ -42,7 +41,7 @@ impl Mutator {
     }
 
     //Return value indicates if minimization is complete: true: complete, false: not complete
-    pub fn minimize_tree<F>(
+    pub fn minimize_tree<F, E>(
         &mut self,
         tree: &mut Tree,
         bits: &HashSet<usize>,
@@ -50,9 +49,9 @@ impl Mutator {
         start_index: usize,
         end_index: usize,
         tester: &mut F,
-    ) -> Result<bool, SubprocessError>
+    ) -> Result<bool, E>
     where
-        F: FnMut(&TreeMutation, &HashSet<usize>, &Context) -> Result<bool, SubprocessError>,
+        F: FnMut(&TreeMutation, &HashSet<usize>, &Context) -> Result<bool, E>,
     {
         let mut i = start_index;
         while i < tree.size() {
@@ -82,7 +81,7 @@ impl Mutator {
     }
 
     //Return value indicates if minimization is complete: true: complete, false: not complete
-    pub fn minimize_rec<F>(
+    pub fn minimize_rec<F, E>(
         &mut self,
         tree: &mut Tree,
         bits: &HashSet<usize>,
@@ -90,9 +89,9 @@ impl Mutator {
         start_index: usize,
         end_index: usize,
         tester: &mut F,
-    ) -> Result<bool, SubprocessError>
+    ) -> Result<bool, E>
     where
-        F: FnMut(&TreeMutation, &HashSet<usize>, &Context) -> Result<bool, SubprocessError>,
+        F: FnMut(&TreeMutation, &HashSet<usize>, &Context) -> Result<bool, E>,
     {
         let mut i = start_index;
         while i < tree.size() {
@@ -113,16 +112,16 @@ impl Mutator {
         return Ok(true);
     }
 
-    pub fn mut_rules<F>(
+    pub fn mut_rules<F, E>(
         &mut self,
         tree: &Tree,
         ctx: &Context,
         start_index: usize,
         end_index: usize,
         tester: &mut F,
-    ) -> Result<bool, SubprocessError>
+    ) -> Result<bool, E>
     where
-        F: FnMut(&TreeMutation, &Context) -> Result<(), SubprocessError>,
+        F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     {
         for i in start_index..end_index {
             if i == tree.size() {
@@ -146,15 +145,15 @@ impl Mutator {
         return Ok(false);
     }
 
-    pub fn mut_splice<F>(
+    pub fn mut_splice<F, E>(
         &mut self,
         tree: &Tree,
         ctx: &Context,
         cks: &ChunkStore,
         tester: &mut F,
-    ) -> Result<(), SubprocessError>
+    ) -> Result<(), E>
     where
-        F: FnMut(&TreeMutation, &Context) -> Result<(), SubprocessError>,
+        F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     {
         let n = NodeID::from(rand::thread_rng().gen_range(0, tree.size()));
         let old_rule_id = tree.get_rule_id(n);
@@ -165,15 +164,15 @@ impl Mutator {
         return Ok(());
     }
 
-    //pub fn rec_splice<F>(
+    //pub fn rec_splice<F, E>(
     //    &mut self,
     //    tree: &Tree,
     //    ctx: &Context,
     //    cks: &ChunkStore,
     //    tester: &mut F
-    //    )-> Result<(), SubprocessError>
+    //    )-> Result<(), E>
     //where
-    //    F: FnMut(&TreeMutation, &Context) -> Result<(), SubprocessError>,
+    //    F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     //{
     //    let n = NodeID::from(rand::thread_rng().gen_range(0, tree.size()));
     //    if let Some(old_rule_id) = tree.get_rule_id(n){
@@ -187,14 +186,9 @@ impl Mutator {
     //    return Ok(());
     //}
 
-    pub fn mut_random<F>(
-        &mut self,
-        tree: &Tree,
-        ctx: &Context,
-        tester: &mut F,
-    ) -> Result<(), SubprocessError>
+    pub fn mut_random<F, E>(&mut self, tree: &Tree, ctx: &Context, tester: &mut F) -> Result<(), E>
     where
-        F: FnMut(&TreeMutation, &Context) -> Result<(), SubprocessError>,
+        F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     {
         let n = NodeID::from(rand::thread_rng().gen_range(0, tree.size()));
         let nterm = tree.get_rule(n, ctx).nonterm();
@@ -207,15 +201,15 @@ impl Mutator {
         return Ok(());
     }
 
-    pub fn mut_random_recursion<F>(
+    pub fn mut_random_recursion<F, E>(
         &mut self,
         tree: &Tree,
         recursions: &mut Vec<RecursionInfo>,
         ctx: &Context,
         tester: &mut F,
-    ) -> Result<(), SubprocessError>
+    ) -> Result<(), E>
     where
-        F: FnMut(&TreeMutation, &Context) -> Result<(), SubprocessError>,
+        F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     {
         let max_len_of_recursions = 2 << rand::thread_rng().gen_range(1, 11);
         if let Some(recursion_info) = recursions.choose_mut(&mut rand::thread_rng()) {
@@ -291,7 +285,7 @@ impl Mutator {
         return None;
     }
 
-    fn test_and_convert<F>(
+    fn test_and_convert<F, E>(
         tree_a: &Tree,
         n_a: NodeID,
         tree_b: &Tree,
@@ -299,9 +293,9 @@ impl Mutator {
         ctx: &Context,
         fresh_bits: &HashSet<usize>,
         tester: &mut F,
-    ) -> Result<Option<Tree>, SubprocessError>
+    ) -> Result<Option<Tree>, E>
     where
-        F: FnMut(&TreeMutation, &HashSet<usize>, &Context) -> Result<bool, SubprocessError>,
+        F: FnMut(&TreeMutation, &HashSet<usize>, &Context) -> Result<bool, E>,
     {
         let repl = tree_a.mutate_replace_from_tree(n_a, tree_b, n_b);
         if tester(&repl, &fresh_bits, ctx)? {
