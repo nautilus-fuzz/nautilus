@@ -92,7 +92,6 @@ impl<'data, 'tree: 'data, 'ctx: 'data, W: Write, T: TreeLike> Unparser<'data, 't
             .unwrap();
     }
     fn script(&mut self, py: Python, num: usize, expr: PyObject) -> PyResult<()> {
-        use pyo3::AsPyRef;
         let bufs = self.buffers.split_off(self.buffers.len() - num);
         let bufs = bufs
             .into_iter()
@@ -100,14 +99,14 @@ impl<'data, 'tree: 'data, 'ctx: 'data, W: Write, T: TreeLike> Unparser<'data, 't
             .collect::<Vec<_>>();
         let byte_arrays = bufs.iter().map(|b| PyBytes::new(py, b));
         let res = expr.call1(py, PyTuple::new(py, byte_arrays))?;
-        if py.is_instance::<PyString, _>(&res)? {
+        if res.as_ref(py).is_instance::<PyString>()? {
             let pystr = <&PyString>::extract(res.as_ref(py))?;
             self.write(pystr.to_string_lossy().as_bytes());
-        } else if py.is_instance::<PyBytes, _>(&res)? {
+        } else if res.as_ref(py).is_instance::<PyBytes>()? {
             let pybytes = <&PyBytes>::extract(res.as_ref(py))?;
             self.write(pybytes.as_bytes());
         } else {
-            return Err(pyo3::exceptions::ValueError::py_err(
+            return Err(pyo3::exceptions::PyValueError::new_err(
                 "script function should return string or bytes",
             ));
         }
