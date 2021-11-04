@@ -35,6 +35,7 @@ git clone 'git@github.com:nautilus-fuzz/nautilus.git'
 cd nautilus
 /path/to/AFLplusplus/afl-clang-fast test.c -o test #afl-clang-fast as provided by AFL
 
+mkdir /tmp/workdir
 # all arguments can also be set using the config.ron file
 cargo run --release -- -g grammars/grammar_py_example.py -o /tmp/workdir -- ./test @@
 
@@ -74,7 +75,7 @@ ctx.regex("TAG","[a-z]+")
 To test your grammars you can use the generator:
 
 ```
-$ cargo run --bin generator -- -g grammars/grammar_py_exmaple.py -t 100 
+$ cargo run --bin generator -- -g grammars/grammar_py_example.py -t 100 
 <document><some_tag foo=bar><other_tag foo=bar><other_tag foo=bar><some_tag foo=bar></some_tag></other_tag><some_tag foo=bar><other_tag foo=bar></other_tag></some_tag><other_tag foo=bar></other_tag><some_tag foo=bar></some_tag></other_tag><other_tag foo=bar></other_tag><some_tag foo=bar></some_tag></some_tag></document>
 ```
 
