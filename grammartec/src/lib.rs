@@ -20,7 +20,6 @@
 extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
-extern crate forksrv;
 extern crate loaded_dice;
 extern crate num;
 extern crate pyo3;

@@ -17,7 +17,7 @@ serde_derive = "1.0"
 argparse = "0.2.2"
 ron = "*"
 clap = "2.33.1"
-pyo3 = "0.10.1"
+pyo3 = "0.14.3"
 
 [[bin]]
 name = "fuzzer"
