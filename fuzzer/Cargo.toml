@@ -10,8 +10,8 @@ default-run = "fuzzer"
 nix = "0.17.0"
 time = "0.1"
 subprocess = "0.2.4"
-grammartec = {path = "../grammartec"}
-forksrv =  {path = "../forksrv"}
+grammartec = {path = "../grammartec", version = "0.1"}
+forksrv =  {path = "../forksrv", version = "0.1"}
 libc = "*"
 serde = "1.0"
 serde_json = "1.0"
