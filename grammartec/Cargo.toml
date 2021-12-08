@@ -2,13 +2,15 @@
 name = "grammartec"
 version = "0.1.0"
 authors = ["coco <coco@hexgolems.com>"]
+description = "The Nautilus grammartec"
+license = "AGPL-3.0"
 
 [dependencies]
 regex = "1.3.7"
 lazy_static= "1.4.0"
 rand = "0.7.3"
 hash_by_ref = "0.1.0"
-regex_mutator = {path = "../regex_mutator"}
+regex_mutator = {path = "../regex_mutator", version = "0.1"}
 regex-syntax = "0.6.17"
 serde_derive = "1.0"
 serde = "1.0"

@@ -2,6 +2,8 @@
 name = "forksrv"
 version = "0.1.0"
 authors = ["coco <coco@hexgolems.com>", "daniel daniel.teuchert@rub.de"]
+description = "The Nautilus forkserver"
+license = "AGPL-3.0"
 
 [dependencies]
 nix = "0.15.0"
