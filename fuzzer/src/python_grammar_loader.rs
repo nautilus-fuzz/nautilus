@@ -74,6 +74,7 @@ fn main_(py: Python, grammar_path: &str) -> PyResult<Context> {
 }
 
 pub fn load_python_grammar(grammar_path: &str) -> Context {
+    pyo3::prepare_freethreaded_python();
     let gil = Python::acquire_gil();
     let py = gil.python();
     return main_(py, grammar_path)
