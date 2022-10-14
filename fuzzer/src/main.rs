@@ -210,7 +210,7 @@ fn main() {
         .setting(clap::AppSettings::TrailingVarArg)
         .arg(
             Arg::with_name("config")
-                .short("c")
+                .short('c')
                 .value_name("CONFIG")
                 .takes_value(true)
                 .help("Path to configuration file")
@@ -218,13 +218,13 @@ fn main() {
         )
         .arg(
             Arg::with_name("grammar")
-                .short("g")
+                .short('g')
                 .takes_value(true)
                 .help("Overwrite the grammar file specified in the CONFIG"),
         )
         .arg(
             Arg::with_name("workdir")
-                .short("o")
+                .short('o')
                 .takes_value(true)
                 .help("Overwrite the workdir specified in the CONFIG"),
         )

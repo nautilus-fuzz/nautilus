@@ -39,10 +39,10 @@ impl PyContext {
     }
 
     fn rule(&mut self, _py: Python, nt: &str, format: &PyAny) -> PyResult<()> {
-        if format.is_instance::<PyString>()? {
+        if format.is_instance_of::<PyString>()? {
             let pystr = <&PyString>::extract(&format)?;
             self.ctx.add_rule(nt, pystr.to_string_lossy().as_bytes());
-        } else if format.is_instance::<PyBytes>()? {
+        } else if format.is_instance_of::<PyBytes>()? {
             let pybytes = <&PyBytes>::extract(&format)?;
             self.ctx.add_rule(nt, pybytes.as_bytes());
         } else {
@@ -75,9 +75,9 @@ fn main_(py: Python, grammar_path: &str) -> PyResult<Context> {
 
 pub fn load_python_grammar(grammar_path: &str) -> Context {
     pyo3::prepare_freethreaded_python();
-    let gil = Python::acquire_gil();
-    let py = gil.python();
-    return main_(py, grammar_path)
+    Python::with_gil(|py| {
+        main_(py, grammar_path)
         .map_err(|e| e.print_and_set_sys_last_vars(py))
-        .unwrap();
+        .unwrap()
+    })
 }
