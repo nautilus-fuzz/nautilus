@@ -25,10 +25,9 @@ extern crate serde_derive;
 pub mod exitreason;
 pub mod newtypes;
 
+use nix::errno::errno;
 use nix::fcntl;
-use nix::libc::{
-    __errno_location, shmat, shmctl, shmget, strerror, IPC_CREAT, IPC_EXCL, IPC_PRIVATE, IPC_RMID,
-};
+use nix::libc::{shmat, shmctl, shmget, strerror, IPC_CREAT, IPC_EXCL, IPC_PRIVATE, IPC_RMID};
 use nix::sys::signal::{self, Signal};
 use nix::sys::stat;
 use nix::sys::wait::WaitStatus;
@@ -202,26 +201,17 @@ impl ForkServer {
         unsafe {
             let shm_id = shmget(IPC_PRIVATE, bitmap_size, IPC_CREAT | IPC_EXCL | 0o600);
             if shm_id < 0 {
-                panic!(
-                    "shm_id {:?}",
-                    CString::from_raw(strerror(*__errno_location()))
-                );
+                panic!("shm_id {:?}", CString::from_raw(strerror(errno())));
             }
 
             let trace_bits = shmat(shm_id, ptr::null(), 0);
             if (trace_bits as isize) < 0 {
-                panic!(
-                    "shmat {:?}",
-                    CString::from_raw(strerror(*__errno_location()))
-                );
+                panic!("shmat {:?}", CString::from_raw(strerror(errno())));
             }
 
             let res = shmctl(shm_id, IPC_RMID, 0 as *mut nix::libc::shmid_ds);
             if res < 0 {
-                panic!(
-                    "shmclt {:?}",
-                    CString::from_raw(strerror(*__errno_location()))
-                );
+                panic!("shmclt {:?}", CString::from_raw(strerror(errno())));
             }
             return (shm_id, trace_bits as *mut [u8; 1 << 16]);
         }

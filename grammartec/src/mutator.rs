@@ -310,7 +310,7 @@ mod tests {
     use chunkstore::ChunkStore;
     use context::Context;
     use mutator::Mutator;
-    use newtypes::{NodeID, RuleID};
+    use newtypes::RuleID;
     use rule::RuleIDOrCustom;
     use std::collections::HashSet;
     use std::str;
@@ -367,7 +367,7 @@ mod tests {
                         .collect::<Vec<_>>()[..]
             );
             assert_eq!(tree_mut.repl.last(), Some(&RuleIDOrCustom::Rule(r5)));
-            return Ok(());
+            return Ok::<(), ()>(());
         };
         let mut recursions = tree.calc_recursions(&ctx).expect("RAND_3407743327");
         println!("Recursions:\n{:?}", recursions);
@@ -405,9 +405,9 @@ mod tests {
                             .expect("RAND_2486760939")
                             .contains("a1")
                         {
-                            return Ok(true);
+                            return Ok::<_, ()>(true);
                         } else {
-                            return Ok(false);
+                            return Ok::<_, ()>(false);
                         }
                     };
                 let tree_size = tree.size();
@@ -453,9 +453,9 @@ mod tests {
                             .expect("RAND_1958219388")
                             .contains("a1")
                         {
-                            return Ok(true);
+                            return Ok::<_, ()>(true);
                         } else {
-                            return Ok(false);
+                            return Ok::<_, ()>(false);
                         }
                     };
                 let tree_size = tree.size();
@@ -489,7 +489,7 @@ mod tests {
                 let mut tester = |tree_mut: &TreeMutation, ctx: &Context| {
                     assert_ne!(tree_mut.unparse_to_vec(&ctx), unparse);
                     count += 1;
-                    return Ok(());
+                    return Ok::<_, ()>(());
                 };
                 mutator
                     .mut_rules(&tree, &ctx, 0, tree.size(), &mut tester)
@@ -516,7 +516,7 @@ mod tests {
             let unparse = tree.unparse_to_vec(&ctx);
             let mut tester = |tree_mut: &TreeMutation, ctx: &Context| {
                 assert_ne!(tree_mut.unparse_to_vec(&ctx), unparse);
-                return Ok(());
+                return Ok::<_, ()>(());
             };
             mutator
                 .mut_splice(&tree, &ctx, &cks, &mut tester)
@@ -547,7 +547,7 @@ mod tests {
             {
                 let mut tester = |tree_mut: &TreeMutation, ctx: &Context| {
                     unparses.insert(tree_mut.unparse_to_vec(&ctx));
-                    return Ok(());
+                    return Ok::<_, ()>(());
                 };
                 mutator
                     .mut_rules(&tree, &ctx, 0, tree.size(), &mut tester)

@@ -152,13 +152,11 @@ impl PlainRule {
 
 impl Clone for ScriptRule {
     fn clone(&self) -> Self {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-        return ScriptRule {
+        Python::with_gil(|py| ScriptRule {
             nonterm: self.nonterm.clone(),
             nonterms: self.nonterms.clone(),
             script: self.script.clone_ref(py),
-        };
+        })
     }
 }
 
