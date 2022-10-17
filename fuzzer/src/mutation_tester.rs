@@ -35,9 +35,7 @@ enum MutationMethods {
 
 fn main() {
     //Parse parameters
-    if env::args().len() != 5 {
-        println!("Usage: generator tree_size path_to_serialized_tree path_to_grammar mutation_method(havoc, rec, splice)");
-    } else {
+    if env::args().len() == 5 {
         let tree_depth = env::args()
             .nth(1)
             .expect("RAND_1541841394")
@@ -124,5 +122,7 @@ fn main() {
             }
         }
         println!();
+    } else {
+        println!("Usage: generator tree_size path_to_serialized_tree path_to_grammar mutation_method(havoc, rec, splice)");
     }
 }

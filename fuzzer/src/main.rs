@@ -90,12 +90,12 @@ fn process_input(
 }
 
 fn fuzzing_thread(
-    global_state: Arc<Mutex<GlobalSharedState>>,
-    config: Config,
-    ctx: Context,
-    cks: Arc<ChunkStoreWrapper>,
+    global_state: &Arc<Mutex<GlobalSharedState>>,
+    config: &Config,
+    ctx: &Context,
+    cks: &Arc<ChunkStoreWrapper>,
 ) {
-    let path_to_bin_target = config.path_to_bin_target.to_owned();
+    let path_to_bin_target = config.path_to_bin_target.clone();
     let args = config.arguments.clone();
 
     let fuzzer = Fuzzer::new(
@@ -106,8 +106,7 @@ fn fuzzing_thread(
         config.hide_output,
         config.timeout_in_millis,
         config.bitmap_size,
-    )
-    .expect("RAND_3617502350");
+    );
     let mut state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
     state.ctx = ctx.clone();
     let mut old_execution_count = 0;
@@ -117,7 +116,7 @@ fn fuzzing_thread(
         let inp = global_state.lock().expect("RAND_2191486322").queue.pop();
         if let Some(mut inp) = inp {
             //If subprocess died restart forkserver
-            if process_input(&mut state, &mut inp, &config).is_err() {
+            if process_input(&mut state, &mut inp, config).is_err() {
                 let args = vec![];
                 let fuzzer = Fuzzer::new(
                     path_to_bin_target.clone(),
@@ -127,8 +126,7 @@ fn fuzzing_thread(
                     config.hide_output,
                     config.timeout_in_millis,
                     config.bitmap_size,
-                )
-                .expect("RAND_3077320530");
+                );
                 state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
                 state.ctx = ctx.clone();
                 old_execution_count = 0;
@@ -152,8 +150,7 @@ fn fuzzing_thread(
                         config.hide_output,
                         config.timeout_in_millis,
                         config.bitmap_size,
-                    )
-                    .expect("RAND_357619639");
+                    );
                     state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
                     state.ctx = ctx.clone();
                     old_execution_count = 0;
@@ -258,26 +255,24 @@ fn main() {
     config.path_to_workdir = workdir;
 
     //Check if specified workdir exists:
-    if !Path::new(&config.path_to_workdir).exists() {
-        panic!(
-            "Specified working directory does not exist!\nGiven path: {}",
-            config.path_to_workdir
-        );
-    }
+    assert!(
+        Path::new(&config.path_to_workdir).exists(),
+        "Specified working directory does not exist!\nGiven path: {}",
+        config.path_to_workdir
+    );
 
     if let Some(mut cmdline) = matches.values_of("cmdline") {
         if cmdline.len() > 0 {
             config.path_to_bin_target = cmdline.next().unwrap().to_string();
-            config.arguments = cmdline.map(|x| x.to_string()).collect();
+            config.arguments = cmdline.map(std::string::ToString::to_string).collect();
         }
     }
     //Check if target binary exists:
-    if !Path::new(&config.path_to_bin_target).exists() {
-        panic!(
-            "Target binary does not exist!\nGiven path: {}",
-            config.path_to_bin_target
-        );
-    }
+    assert!(
+        Path::new(&config.path_to_bin_target).exists(),
+        "Target binary does not exist!\nGiven path: {}",
+        config.path_to_bin_target
+    );
 
     let shared = Arc::new(Mutex::new(GlobalSharedState::new(
         config.path_to_workdir.clone(),
@@ -293,7 +288,7 @@ fn main() {
 
     //Check if grammar file exists:
     if !Path::new(&grammar_path).exists() {
-        panic!("Grammar does not exist!\nGiven path: {}", grammar_path);
+        panic!("{}", "Grammar does not exist!\nGiven path: {grammar_path}");
     }
 
     //Generate rules using a grammar
@@ -322,8 +317,8 @@ fn main() {
         "/outputs/timeout",
         "/outputs/chunks",
     ];
-    for f in folders.iter() {
-        fs::create_dir_all(format!("{}/{}", config.path_to_workdir, f))
+    for f in &folders {
+        fs::create_dir_all(format!("{}/{f}", config.path_to_workdir))
             .expect("Could not create folder in workdir");
     }
 
@@ -336,9 +331,9 @@ fn main() {
         let cks = shared_chunkstore.clone();
         thread_number += 1;
         thread::Builder::new()
-            .name(format!("fuzzer_{}", thread_number))
+            .name(format!("fuzzer_{thread_number}"))
             .stack_size(config.thread_size)
-            .spawn(move || fuzzing_thread(state, config, ctx, cks))
+            .spawn(move || fuzzing_thread(&state, &config, &ctx, &cks))
     });
 
     //Start status thread
@@ -493,7 +488,7 @@ fn main() {
             .expect("RAND_3541874337")
     };
 
-    for t in threads.collect::<Vec<_>>().into_iter() {
+    for t in threads.collect::<Vec<_>>() {
         t.expect("RAND_2698731594").join().expect("RAND_2698731594");
     }
     status_thread.join().expect("RAND_399292929");

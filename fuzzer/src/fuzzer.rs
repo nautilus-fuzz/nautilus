@@ -33,6 +33,7 @@ use grammartec::context::Context;
 use grammartec::tree::TreeLike;
 use shared_state::GlobalSharedState;
 
+#[derive(Debug, Clone, Copy)]
 pub enum ExecutionReason {
     Havoc,
     HavocRec,
@@ -80,7 +81,7 @@ impl Fuzzer {
         hide_output: bool,
         timeout_in_millis: u64,
         bitmap_size: usize,
-    ) -> Result<Self, SubprocessError> {
+    ) -> Self {
         let fs = ForkServer::new(
             path.clone(),
             args.clone(),
@@ -88,7 +89,7 @@ impl Fuzzer {
             timeout_in_millis,
             bitmap_size,
         );
-        Ok(Fuzzer {
+        Fuzzer {
             forksrv: fs,
             last_tried_inputs: HashSet::new(),
             last_inputs_ring_buffer: VecDeque::new(),
@@ -114,7 +115,7 @@ impl Fuzzer {
             asan_found_by_det_afl: 0,
             asan_found_by_gen: 0,
             work_dir,
-        })
+        }
     }
 
     pub fn run_on_with_dedup<T: TreeLike>(
@@ -224,8 +225,8 @@ impl Fuzzer {
                         .last_found_sig =
                         strftime("[%Y-%m-%d] %H:%M:%S", &othertime::now()).expect("RAND_76391000");
                     let mut file = File::create(format!(
-                        "{}/outputs/signaled/{:?}_{:09}",
-                        self.work_dir, sig, self.execution_count
+                        "{}/outputs/signaled/{sig:?}_{:09}",
+                        self.work_dir, self.execution_count
                     ))
                     .expect("RAND_3690294970");
                     tree.unparse_to(ctx, &mut file);
@@ -266,14 +267,14 @@ impl Fuzzer {
         let execution_time = start.elapsed().subsec_nanos();
 
         self.average_executions_per_sec = self.average_executions_per_sec * 0.9
-            + ((1.0 / (execution_time as f32)) * 1000000000.0) * 0.1;
+            + ((1.0 / (execution_time as f32)) * 1_000_000_000.0) * 0.1;
 
         Ok((exitreason, execution_time))
     }
 
     fn input_is_known(&mut self, code: &[u8]) -> bool {
         if self.last_tried_inputs.contains(code) {
-            return true;
+            true
         } else {
             self.last_tried_inputs.insert(code.to_vec());
             if self.last_inputs_ring_buffer.len() == 10000 {
@@ -285,8 +286,8 @@ impl Fuzzer {
                 );
             }
             self.last_inputs_ring_buffer.push_front(code.to_vec());
+            false
         }
-        false
     }
 
     fn exec<T: TreeLike>(
@@ -335,7 +336,7 @@ impl Fuzzer {
             let run_bitmap = self.forksrv.get_shared();
             for (i, &v) in old_bitmap.iter().enumerate() {
                 if run_bitmap[i] != v {
-                    println!("found fucky bit {}", i);
+                    println!("found fucky bit {i}");
                 }
             }
             new_bits.retain(|&i| run_bitmap[i] != 0);

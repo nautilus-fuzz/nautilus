@@ -106,8 +106,8 @@ impl Queue {
 
         //Create File for entry
         let mut file = File::create(format!(
-            "{}/outputs/queue/id:{:09},er:{:?}",
-            self.work_dir, self.current_id, exitreason
+            "{}/outputs/queue/id:{:09},er:{exitreason:?}",
+            self.work_dir, self.current_id
         ))
         .expect("RAND_259979732");
         tree.unparse_to(ctx, &mut file);
@@ -175,7 +175,7 @@ impl Queue {
                 self.work_dir, item.id, item.exitreason
             )) {
                 Err(ref err) if err.kind() != ErrorKind::NotFound => {
-                    println!("Error while deleting file: {}", err);
+                    println!("Error while deleting file: {err}");
                 }
                 _ => {}
             }

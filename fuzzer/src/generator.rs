@@ -102,7 +102,7 @@ fn main() {
         let len = ctx.get_random_len_for_nt(&nonterm);
         let generated_tree = ctx.generate_tree_from_nt(nonterm, len); //1 is the index of the "START" Node
         if verbose {
-            println!("Generating tree {} from {}", i + 1, number_of_trees);
+            println!("Generating tree {} from {number_of_trees}", i + 1);
         }
         if store {
             let mut output =
