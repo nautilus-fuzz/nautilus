@@ -1,6 +1,6 @@
 # Nautilus 2.0
 
-Nautilus is a coverage guided, grammar based fuzzer. You can use it to improve your test coverage and find more bugs. By specifying the grammar of semi valid inputs, Nautilus is able to perform complex mutation and to uncover more interesting test cases. Many of the ideas behind this fuzzer are documented in a Paper published at NDSS 2019.
+Nautilus is a coverage-guided, grammar-based fuzzer. You can use it to improve your test coverage and find more bugs. By specifying the grammar of semi-valid inputs, Nautilus is able to perform complex mutations and uncover more interesting test cases. Many of the ideas behind this fuzzer are documented in the Paper published at NDSS 2019.
 
 <p>
 <a href="https://www.ndss-symposium.org/wp-content/uploads/2019/02/ndss2019_04A-3_Aschermann_paper.pdf"> <img align="right" width="200"  src="https://github.com/RUB-SysSec/nautilus/raw/master/paper.png"> </a>
@@ -17,7 +17,7 @@ Version 2.0 has added many improvements to this early prototype and is now 100% 
 * Better ability to avoid generating the same very short inputs over and over
 * Massive cleanup of the code base
 * Helpful error output on invalid grammars
-* Fixed a bug in the the timeout code that occasionally deadlocked the fuzzer
+* Fixed a bug in the timeout code that occasionally deadlocked the fuzzer
 
 
 ## How Does Nautilus Work?
@@ -46,7 +46,7 @@ cargo run /path/to/AFLplusplus/afl-qemu-trace -- ./test_bin @@
 
 ## Examples
 
-Here, we use python to generate a grammar for valid xml-like inputs. Notice the use of a script rule to ensure the the opening
+Here, we use python to generate a grammar for valid xml-like inputs. Notice the use of a script rule to ensure the opening
 and closing tags match.
 
 ```python 
