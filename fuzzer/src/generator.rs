@@ -76,7 +76,7 @@ fn main() {
         let gf = File::open(grammar_path).expect("cannot read grammar file");
         let rules: Vec<Vec<String>> =
             serde_json::from_reader(&gf).expect("cannot parse grammar file");
-        assert!(rules.len() > 0, "rule file didn_t include any rules");
+        assert!(!rules.is_empty(), "rule file didn_t include any rules");
         let root = "{".to_string() + &rules[0][0] + "}";
         ctx.add_rule("START", root.as_bytes());
         for rule in rules {
@@ -114,7 +114,7 @@ fn main() {
             generated_tree.unparse_to(&ctx, &mut stdout_handle);
         }
 
-        let mut of_tree = File::create(&"/tmp/test_tree.ron").expect("cannot create output file");
+        let mut of_tree = File::create("/tmp/test_tree.ron").expect("cannot create output file");
         of_tree
             .write_all(
                 ron::ser::to_string(&generated_tree)

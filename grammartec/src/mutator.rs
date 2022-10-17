@@ -155,7 +155,7 @@ impl Mutator {
     where
         F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     {
-        let n = NodeID::from(rand::thread_rng().gen_range(0, tree.size()));
+        let n = NodeID::from(rand::thread_rng().gen_range(0..tree.size()));
         let old_rule_id = tree.get_rule_id(n);
         if let Some((repl_tree, repl_node)) = cks.get_alternative_to(old_rule_id, ctx) {
             let repl = tree.mutate_replace_from_tree(n, repl_tree, repl_node);
@@ -190,7 +190,7 @@ impl Mutator {
     where
         F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     {
-        let n = NodeID::from(rand::thread_rng().gen_range(0, tree.size()));
+        let n = NodeID::from(rand::thread_rng().gen_range(0..tree.size()));
         let nterm = tree.get_rule(n, ctx).nonterm();
         if ctx.check_if_nterm_has_multiple_possiblities(&nterm) {
             let len = ctx.get_random_len_for_nt(&nterm);
@@ -211,7 +211,7 @@ impl Mutator {
     where
         F: FnMut(&TreeMutation, &Context) -> Result<(), E>,
     {
-        let max_len_of_recursions = 2 << rand::thread_rng().gen_range(1, 11);
+        let max_len_of_recursions = 2 << rand::thread_rng().gen_range(1..11);
         if let Some(recursion_info) = recursions.choose_mut(&mut rand::thread_rng()) {
             let recursion = recursion_info.get_random_recursion_pair();
             let recursion_len_pre = recursion.1.to_i() - recursion.0.to_i();

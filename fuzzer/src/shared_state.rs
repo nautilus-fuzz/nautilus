@@ -52,7 +52,7 @@ impl GlobalSharedState {
         let mut bitmaps = HashMap::new();
         bitmaps.insert(false, vec![0; bitmap_size]);
         bitmaps.insert(true, vec![0; bitmap_size]);
-        return GlobalSharedState {
+        GlobalSharedState {
             queue,
             bitmaps,
             execution_count: 0,
@@ -77,6 +77,6 @@ impl GlobalSharedState {
             state_saved: String::from("State not saved yet."),
             total_found_asan: 0,
             total_found_sig: 0,
-        };
+        }
     }
 }

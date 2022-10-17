@@ -214,11 +214,11 @@ impl TreeLike for Tree {
     }
 
     fn size(&self) -> usize {
-        return self.rules.len();
+        self.rules.len()
     }
 
     fn to_tree(&self, _ctx: &Context) -> Tree {
-        return self.clone();
+        self.clone()
     }
 
     fn get_rule<'c>(&self, n: NodeID, ctx: &'c Context) -> &'c Rule {
@@ -241,18 +241,18 @@ impl Tree {
             sizes,
             paren,
         };
-        if res.rules.len() > 0 {
+        if res.rules.is_empty() {
             res.calc_subtree_sizes_and_parents(ctx);
         }
-        return res;
+        res
     }
 
     pub fn get_rule_id(&self, n: NodeID) -> RuleID {
-        return self.rules[n.to_i()].id();
+        self.rules[n.to_i()].id()
     }
 
     pub fn subtree_size(&self, n: NodeID) -> usize {
-        return self.sizes[n.to_i()];
+        self.sizes[n.to_i()]
     }
 
     pub fn mutate_replace_from_tree<'a>(
@@ -312,14 +312,15 @@ impl Tree {
     }
 
     fn slice(&self, from: NodeID, to: NodeID) -> &[RuleIDOrCustom] {
-        return &self.rules[from.into()..to.into()];
+        &self.rules[from.into()..to.into()]
     }
 
     pub fn get_parent(&self, n: NodeID) -> Option<NodeID> {
         if n != NodeID::from(0) {
-            return Some(self.paren[n.to_i()]);
+            Some(self.paren[n.to_i()])
+        } else {
+            None
         }
-        return None;
     }
 
     pub fn truncate(&mut self) {
@@ -340,7 +341,7 @@ impl Tree {
                 self.rules.push(RuleIDOrCustom::Rule(ruleid));
                 self.sizes.push(0);
                 self.paren.push(NodeID::from(0));
-                ctx.get_rule(ruleid).generate(self, &ctx, max_len);
+                ctx.get_rule(ruleid).generate(self, ctx, max_len);
                 self.sizes[0] = self.rules.len();
             }
             Rule::RegExp(RegExpRule { hir, .. }) => {
@@ -361,19 +362,19 @@ impl Tree {
         let mut ret = Vec::new();
         let mut done_nterms = HashSet::new();
         for rule in &self.rules {
-            let nterm = ctx.get_nt(&rule);
+            let nterm = ctx.get_nt(rule);
             if !done_nterms.contains(&nterm) {
-                match RecursionInfo::new(self, nterm, ctx) {
-                    Some(rec_info) => ret.push(rec_info),
-                    None => {}
+                if let Some(rec_info) = RecursionInfo::new(self, nterm, ctx) {
+                    ret.push(rec_info);
                 }
                 done_nterms.insert(nterm);
             }
         }
         if ret.is_empty() {
-            return None;
+            None
+        } else {
+            Some(ret)
         }
-        return Some(ret);
     }
 
     pub fn find_recursions_iter(&self, ctx: &Context) -> Vec<(NodeID, NodeID)> {
@@ -395,7 +396,7 @@ impl Tree {
                 depth += 1;
             }
         }
-        return found_recursions;
+        found_recursions
     }
 }
 
@@ -426,11 +427,11 @@ impl<'a> TreeMutation<'a> {
 
 impl<'a> TreeLike for TreeMutation<'a> {
     fn get_rule_id(&self, n: NodeID) -> RuleID {
-        return self.get_at(n).id();
+        self.get_at(n).id()
     }
 
     fn size(&self) -> usize {
-        return self.prefix.len() + self.repl.len() + self.postfix.len();
+        self.prefix.len() + self.repl.len() + self.postfix.len()
     }
     fn get_rule_or_custom(&self, n: NodeID) -> &RuleIDOrCustom {
         self.get_at(n)
@@ -438,10 +439,10 @@ impl<'a> TreeLike for TreeMutation<'a> {
 
     fn to_tree(&self, ctx: &Context) -> Tree {
         let mut vec = vec![];
-        vec.extend_from_slice(&self.prefix);
-        vec.extend_from_slice(&self.repl);
-        vec.extend_from_slice(&self.postfix);
-        return Tree::from_rule_vec(vec, ctx);
+        vec.extend_from_slice(self.prefix);
+        vec.extend_from_slice(self.repl);
+        vec.extend_from_slice(self.postfix);
+        Tree::from_rule_vec(vec, ctx)
     }
 
     fn get_rule<'c>(&self, n: NodeID, ctx: &'c Context) -> &'c Rule {

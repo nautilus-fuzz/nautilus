@@ -246,7 +246,7 @@ impl Context {
         let mut res = total_remaining_len;
         let iters = (number_of_children as i32) - 1;
         for _ in 0..iters {
-            let proposal = thread_rng().gen_range(0, total_remaining_len + 1);
+            let proposal = thread_rng().gen_range(0..total_remaining_len + 1);
             if proposal < res {
                 res = proposal
             }

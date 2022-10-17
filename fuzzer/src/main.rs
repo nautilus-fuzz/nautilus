@@ -86,7 +86,7 @@ fn process_input(
             state.havoc_recursion(inp)?;
         }
     }
-    return Ok(());
+    Ok(())
 }
 
 fn fuzzing_thread(
@@ -104,8 +104,8 @@ fn fuzzing_thread(
         global_state.clone(),
         config.path_to_workdir.clone(),
         config.hide_output,
-        config.timeout_in_millis.clone(),
-        config.bitmap_size.clone(),
+        config.timeout_in_millis,
+        config.bitmap_size,
     )
     .expect("RAND_3617502350");
     let mut state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
@@ -125,8 +125,8 @@ fn fuzzing_thread(
                     global_state.clone(),
                     config.path_to_workdir.clone(),
                     config.hide_output,
-                    config.timeout_in_millis.clone(),
-                    config.bitmap_size.clone(),
+                    config.timeout_in_millis,
+                    config.bitmap_size,
                 )
                 .expect("RAND_3077320530");
                 state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
@@ -150,8 +150,8 @@ fn fuzzing_thread(
                         global_state.clone(),
                         config.path_to_workdir.clone(),
                         config.hide_output,
-                        config.timeout_in_millis.clone(),
-                        config.bitmap_size.clone(),
+                        config.timeout_in_millis,
+                        config.bitmap_size,
                     )
                     .expect("RAND_357619639");
                     state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
@@ -243,7 +243,7 @@ fn main() {
     );
 
     //Set Config
-    let mut config_file = File::open(&config_file_path).expect("cannot read config file");
+    let mut config_file = File::open(config_file_path).expect("cannot read config file");
     let mut config_file_contents = String::new();
     config_file
         .read_to_string(&mut config_file_contents)

@@ -88,7 +88,7 @@ impl Fuzzer {
             timeout_in_millis,
             bitmap_size,
         );
-        return Ok(Fuzzer {
+        Ok(Fuzzer {
             forksrv: fs,
             last_tried_inputs: HashSet::new(),
             last_inputs_ring_buffer: VecDeque::new(),
@@ -113,8 +113,8 @@ impl Fuzzer {
             asan_found_by_det: 0,
             asan_found_by_det_afl: 0,
             asan_found_by_gen: 0,
-            work_dir: work_dir,
-        });
+            work_dir,
+        })
     }
 
     pub fn run_on_with_dedup<T: TreeLike>(
@@ -128,7 +128,7 @@ impl Fuzzer {
             return Ok(false);
         }
         self.run_on(&code, tree, exec_reason, ctx)?;
-        return Ok(true);
+        Ok(true)
     }
 
     pub fn run_on_without_dedup<T: TreeLike>(
@@ -138,12 +138,12 @@ impl Fuzzer {
         ctx: &Context,
     ) -> Result<(), SubprocessError> {
         let code = tree.unparse_to_vec(ctx);
-        return self.run_on(&code, tree, exec_reason, ctx);
+        self.run_on(&code, tree, exec_reason, ctx)
     }
 
     fn run_on<T: TreeLike>(
         &mut self,
-        code: &Vec<u8>,
+        code: &[u8],
         tree: &T,
         exec_reason: ExecutionReason,
         ctx: &Context,
@@ -234,7 +234,7 @@ impl Fuzzer {
             ExitReason::Stopped(_sig) => {}
         }
         stdout().flush().expect("RAND_2937475131");
-        return Ok(());
+        Ok(())
     }
 
     pub fn has_bits<T: TreeLike>(
@@ -253,22 +253,22 @@ impl Fuzzer {
                 found_all = false;
             }
         }
-        return Ok(found_all);
+        Ok(found_all)
     }
 
-    pub fn exec_raw<'a>(&'a mut self, code: &[u8]) -> Result<(ExitReason, u32), SubprocessError> {
+    pub fn exec_raw(&mut self, code: &[u8]) -> Result<(ExitReason, u32), SubprocessError> {
         self.execution_count += 1;
 
         let start = Instant::now();
 
-        let exitreason = self.forksrv.run(&code)?;
+        let exitreason = self.forksrv.run(code)?;
 
         let execution_time = start.elapsed().subsec_nanos();
 
         self.average_executions_per_sec = self.average_executions_per_sec * 0.9
             + ((1.0 / (execution_time as f32)) * 1000000000.0) * 0.1;
 
-        return Ok((exitreason, execution_time));
+        Ok((exitreason, execution_time))
     }
 
     fn input_is_known(&mut self, code: &[u8]) -> bool {
@@ -286,7 +286,7 @@ impl Fuzzer {
             }
             self.last_inputs_ring_buffer.push_front(code.to_vec());
         }
-        return false;
+        false
     }
 
     fn exec<T: TreeLike>(
@@ -295,13 +295,12 @@ impl Fuzzer {
         tree_like: &T,
         ctx: &Context,
     ) -> Result<(Option<Vec<usize>>, ExitReason), SubprocessError> {
-        let (exitreason, execution_time) = self.exec_raw(&code)?;
+        let (exitreason, execution_time) = self.exec_raw(code)?;
 
-        let is_crash = match exitreason {
-            ExitReason::Normal(223) => true,
-            ExitReason::Signaled(_) => true,
-            _ => false,
-        };
+        let is_crash = matches!(
+            exitreason,
+            ExitReason::Normal(223) | ExitReason::Signaled(_)
+        );
 
         let mut final_bits = None;
         if let Some(mut new_bits) = self.new_bits(is_crash) {
@@ -309,8 +308,8 @@ impl Fuzzer {
             if exitreason != ExitReason::Timeouted {
                 //Check for non deterministic bits
                 let old_bitmap: Vec<u8> = self.forksrv.get_shared().to_vec();
-                self.check_deterministic_behaviour(&old_bitmap, &mut new_bits, &code)?;
-                if new_bits.len() > 0 {
+                self.check_deterministic_behaviour(&old_bitmap, &mut new_bits, code)?;
+                if !new_bits.is_empty() {
                     final_bits = Some(new_bits);
                     let tree = tree_like.to_tree(ctx);
                     self.global_state
@@ -322,7 +321,7 @@ impl Fuzzer {
                 }
             }
         }
-        return Ok((final_bits, exitreason));
+        Ok((final_bits, exitreason))
     }
 
     fn check_deterministic_behaviour(
@@ -341,7 +340,7 @@ impl Fuzzer {
             }
             new_bits.retain(|&i| run_bitmap[i] != 0);
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn new_bits(&mut self, is_crash: bool) -> Option<Vec<usize>> {
@@ -361,10 +360,10 @@ impl Fuzzer {
             }
         }
 
-        if res.len() > 0 {
+        if !res.is_empty() {
             //print!("New path found:\nNew bits: {:?}\n", res);
             return Some(res);
         }
-        return None;
+        None
     }
 }
