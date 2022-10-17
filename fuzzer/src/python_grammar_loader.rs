@@ -54,7 +54,7 @@ impl PyContext {
     }
 
     fn script(&mut self, nt: &str, nts: Vec<String>, script: PyObject) {
-        self.ctx.add_script(nt, nts, script);
+        self.ctx.add_script(nt, &nts, script);
     }
 
     fn regex(&mut self, nt: &str, regex: &str) {

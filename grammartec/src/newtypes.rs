@@ -27,6 +27,7 @@ pub struct NodeID(usize);
 pub struct NTermID(usize);
 
 impl RuleID {
+    #[must_use]
     pub fn to_i(&self) -> usize {
         self.0
     }
@@ -34,24 +35,25 @@ impl RuleID {
 
 impl From<usize> for RuleID {
     fn from(i: usize) -> Self {
-        return RuleID(i);
+        RuleID(i)
     }
 }
 
-impl Into<usize> for RuleID {
-    fn into(self) -> usize {
-        return self.0;
+impl From<RuleID> for usize {
+    fn from(rule_id: RuleID) -> Self {
+        rule_id.0
     }
 }
 
 impl Add<usize> for RuleID {
     type Output = RuleID;
     fn add(self, rhs: usize) -> RuleID {
-        return RuleID(self.0 + rhs);
+        RuleID(self.0 + rhs)
     }
 }
 
 impl NodeID {
+    #[must_use]
     pub fn to_i(&self) -> usize {
         self.0
     }
@@ -59,20 +61,20 @@ impl NodeID {
 
 impl From<usize> for NodeID {
     fn from(i: usize) -> Self {
-        return NodeID(i);
+        NodeID(i)
     }
 }
 
-impl Into<usize> for NodeID {
-    fn into(self) -> usize {
-        return self.0;
+impl From<NodeID> for usize {
+    fn from(node_id: NodeID) -> Self {
+        node_id.0
     }
 }
 
 impl Add<usize> for NodeID {
     type Output = NodeID;
     fn add(self, rhs: usize) -> NodeID {
-        return NodeID(self.0 + rhs);
+        NodeID(self.0 + rhs)
     }
 }
 
@@ -83,23 +85,18 @@ impl Step for NodeID {
         if start > end {
             return None;
         }
-        return Some(end_i - start_i);
+        Some(end_i - start_i)
     }
     fn forward_checked(start: Self, count: usize) -> Option<Self> {
-        match start.0.checked_add(count) {
-            Some(x) => return Some(NodeID::from(x)),
-            None => return None,
-        }
+        start.0.checked_add(count).map(NodeID::from)
     }
     fn backward_checked(start: Self, count: usize) -> Option<Self> {
-        match start.0.checked_sub(count) {
-            Some(x) => return Some(NodeID::from(x)),
-            None => return None,
-        }
+        start.0.checked_sub(count).map(NodeID::from)
     }
 }
 
 impl NTermID {
+    #[must_use]
     pub fn to_i(&self) -> usize {
         self.0
     }
@@ -107,20 +104,20 @@ impl NTermID {
 
 impl From<usize> for NTermID {
     fn from(i: usize) -> Self {
-        return NTermID(i);
+        NTermID(i)
     }
 }
 
-impl Into<usize> for NTermID {
-    fn into(self) -> usize {
-        return self.0;
+impl From<NTermID> for usize {
+    fn from(term_id: NTermID) -> Self {
+        term_id.0
     }
 }
 
 impl Add<usize> for NTermID {
     type Output = NTermID;
     fn add(self, rhs: usize) -> NTermID {
-        return NTermID(self.0 + rhs);
+        NTermID(self.0 + rhs)
     }
 }
 

@@ -48,7 +48,7 @@ use std::fs::File;
 use std::os::unix::io::FromRawFd;
 
 use exitreason::ExitReason;
-use newtypes::*;
+use newtypes::{QemuRunIO, QemuRunNix, SubprocessError};
 use snafu::ResultExt;
 
 pub struct ForkServer {
@@ -59,6 +59,7 @@ pub struct ForkServer {
 }
 
 impl ForkServer {
+    #[must_use]
     pub fn new(
         path: String,
         args: Vec<String>,
@@ -95,12 +96,12 @@ impl ForkServer {
                 st_out
                     .read_u32::<LittleEndian>()
                     .expect("couldn't read child hello");
-                return Self {
-                    inp_file: inp_file,
+                Self {
+                    inp_file,
                     ctl_in: unsafe { File::from_raw_fd(ctl_in) },
-                    shared_data: shared_data,
+                    shared_data,
                     st_out,
-                };
+                }
             }
             //Child does complex stuff
             ForkResult::Child => {
@@ -124,7 +125,7 @@ impl ForkServer {
                     .map(|s| CString::new(s).expect("args must not contain zero"))
                     .collect::<Vec<_>>();
 
-                let shm_id = CString::new(format!("__AFL_SHM_ID={}", shm_file)).unwrap();
+                let shm_id = CString::new(format!("__AFL_SHM_ID={shm_file}")).unwrap();
 
                 //Asan options: set asan SIG to 223 and disable leak detection
                 let asan_settings =
@@ -140,7 +141,7 @@ impl ForkServer {
                     unistd::dup2(null, 2 as RawFd).expect("couldn't dup2 /dev/null to stderr");
                     unistd::close(null).expect("couldn't close /dev/null");
                 }
-                println!("EXECVE {:?} {:?} {:?}", path, args, env);
+                println!("EXECVE {path:?} {args:?} {env:?}");
                 unistd::execve(&path, &args, &env).expect("couldn't execve afl-qemu-tarce");
                 unreachable!();
             }
@@ -187,40 +188,51 @@ impl ForkServer {
         self.st_out.read_u32::<LittleEndian>().context(QemuRunIO {
             task: "couldn't read timeout exitcode",
         })?;
-        return Ok(ExitReason::Timeouted);
+        Ok(ExitReason::Timeouted)
     }
 
     pub fn get_shared_mut(&mut self) -> &mut [u8] {
-        unsafe { return &mut *self.shared_data }
+        unsafe { &mut *self.shared_data }
     }
+    #[must_use]
     pub fn get_shared(&self) -> &[u8] {
-        unsafe { return &*self.shared_data }
+        unsafe { &*self.shared_data }
     }
 
     fn create_shm(bitmap_size: usize) -> (i32, *mut [u8]) {
         unsafe {
             let shm_id = shmget(IPC_PRIVATE, bitmap_size, IPC_CREAT | IPC_EXCL | 0o600);
-            if shm_id < 0 {
-                panic!("shm_id {:?}", CString::from_raw(strerror(errno())));
-            }
+            assert!(
+                shm_id >= 0,
+                "shm_id {:?}",
+                CString::from_raw(strerror(errno()))
+            );
 
             let trace_bits = shmat(shm_id, ptr::null(), 0);
-            if (trace_bits as isize) < 0 {
-                panic!("shmat {:?}", CString::from_raw(strerror(errno())));
-            }
+            assert!(
+                (trace_bits as isize) >= 0,
+                "shmat {:?}",
+                CString::from_raw(strerror(errno()))
+            );
 
-            let res = shmctl(shm_id, IPC_RMID, 0 as *mut nix::libc::shmid_ds);
-            if res < 0 {
-                panic!("shmclt {:?}", CString::from_raw(strerror(errno())));
-            }
-            return (shm_id, trace_bits as *mut [u8; 1 << 16]);
+            let res = shmctl(
+                shm_id,
+                IPC_RMID,
+                std::ptr::null_mut::<nix::libc::shmid_ds>(),
+            );
+            assert!(
+                res >= 0,
+                "shmclt {:?}",
+                CString::from_raw(strerror(errno()))
+            );
+            (shm_id, trace_bits.cast::<[u8; 65536]>())
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    use crate::{exitreason, ForkServer};
     #[test]
     fn run_forkserver() {
         let hide_output = false;
