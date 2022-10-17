@@ -42,13 +42,13 @@ impl FuzzingState {
     pub fn new(fuzzer: Fuzzer, config: Config, cks: Arc<ChunkStoreWrapper>) -> Self {
         let ctx = Context::new();
         let mutator = Mutator::new(&ctx);
-        return FuzzingState {
+        FuzzingState {
             cks,
             ctx,
             config,
             fuzzer,
             mutator,
-        };
+        }
     }
 
     //Return value indicates if minimization is complete: true: complete, false: not complete
@@ -102,7 +102,7 @@ impl FuzzingState {
                 .chunkstore
                 .write()
                 .expect("RAND_1217841466")
-                .add_tree(input.tree.clone(), &ctx);
+                .add_tree(input.tree.clone(), ctx);
             self.cks.is_locked.store(false, Ordering::Release);
 
             input.recursions = input.tree.calc_recursions(ctx);
@@ -113,11 +113,11 @@ impl FuzzingState {
                 &self.config.path_to_workdir, input.id, input.exitreason
             ))
             .expect("Could not create queue entry, are you sure $workdir/outputs exists?");
-            input.tree.unparse_to(&ctx, &mut file);
+            input.tree.unparse_to(ctx, &mut file);
             return Ok(true);
         }
 
-        return Ok(false);
+        Ok(false)
     }
 
     pub fn deterministic_tree_mutation(
@@ -139,7 +139,7 @@ impl FuzzingState {
                     .map(|_| ())
             },
         )?;
-        return Ok(done);
+        Ok(done)
     }
 
     pub fn havoc(&mut self, input: &mut QueueItem) -> Result<(), SubprocessError> {
@@ -153,7 +153,7 @@ impl FuzzingState {
                         .map(|_| ())
                 })?;
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn havoc_recursion(&mut self, input: &mut QueueItem) -> Result<(), SubprocessError> {
@@ -175,7 +175,7 @@ impl FuzzingState {
                 )?;
             }
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn splice(&mut self, input: &mut QueueItem) -> Result<(), SubprocessError> {
@@ -191,7 +191,7 @@ impl FuzzingState {
             self.mutator.mut_splice(
                 &input.tree,
                 ctx,
-                &*self.cks.chunkstore.read().expect("RAND_1290117799"),
+                &self.cks.chunkstore.read().expect("RAND_1290117799"),
                 &mut |t: &TreeMutation, ctx: &Context| {
                     fuzzer
                         .run_on_with_dedup(t, ExecutionReason::Splice, ctx)
@@ -199,7 +199,7 @@ impl FuzzingState {
                 },
             )?;
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn generate_random(&mut self, nt: &str) -> Result<(), SubprocessError> {
@@ -207,8 +207,8 @@ impl FuzzingState {
         let len = self.ctx.get_random_len_for_nt(&nonterm);
         let tree = self.ctx.generate_tree_from_nt(nonterm, len);
         self.fuzzer
-            .run_on_with_dedup(&tree, ExecutionReason::Gen, &mut self.ctx)?;
-        return Ok(());
+            .run_on_with_dedup(&tree, ExecutionReason::Gen, &self.ctx)?;
+        Ok(())
     }
     #[allow(dead_code)]
     pub fn inspect(&self, input: &QueueItem) -> String {

@@ -35,9 +35,7 @@ enum MutationMethods {
 
 fn main() {
     //Parse parameters
-    if env::args().len() != 5 {
-        println!("Usage: generator tree_size path_to_serialized_tree path_to_grammar mutation_method(havoc, rec, splice)");
-    } else {
+    if env::args().len() == 5 {
         let tree_depth = env::args()
             .nth(1)
             .expect("RAND_1541841394")
@@ -63,7 +61,7 @@ fn main() {
             let root = "{".to_string() + &rules[0].0 + "}";
             ctx.add_rule("START", root.as_bytes());
             for rule in rules {
-                ctx.add_rule(&rule.0, &rule.1.as_bytes());
+                ctx.add_rule(&rule.0, rule.1.as_bytes());
             }
         } else {
             panic!("Unknown grammar type");
@@ -74,8 +72,7 @@ fn main() {
         let mut tree_as_string = String::new();
         sf.read_to_string(&mut tree_as_string)
             .expect("RAND_421233044");
-        let mut tree: Tree =
-            ron::de::from_str(&tree_as_string).expect("Failed to deserialize tree");
+        let tree: Tree = ron::de::from_str(&tree_as_string).expect("Failed to deserialize tree");
 
         //Initialize Context
         ctx.initialize(tree_depth);
@@ -89,7 +86,7 @@ fn main() {
             let mut stdout_handle = stdout.lock();
             tree.unparse_to(&ctx, &mut stdout_handle);
         }
-        print!("\n");
+        println!();
         let mut mutator = Mutator::new(&ctx);
         let mut tester = |tree_mut: &TreeMutation, ctx: &Context| -> Result<(), ()> {
             println!("prefix: {:?}", tree_mut.prefix);
@@ -102,17 +99,17 @@ fn main() {
             );
             let stdout = io::stdout();
             let mut stdout_handle = stdout.lock();
-            mutated_tree.unparse_to(&ctx, &mut stdout_handle);
-            return Ok(());
+            mutated_tree.unparse_to(ctx, &mut stdout_handle);
+            Ok(())
         };
         match method {
             MutationMethods::Havoc => mutator
-                .mut_random(&mut tree, &ctx, &mut tester)
+                .mut_random(&tree, &ctx, &mut tester)
                 .expect("RAND_1926416364"),
             MutationMethods::HavocRec => {
                 if let Some(ref mut recursions) = tree.calc_recursions(&ctx) {
                     mutator
-                        .mut_random_recursion(&mut tree, recursions, &ctx, &mut tester)
+                        .mut_random_recursion(&tree, recursions, &ctx, &mut tester)
                         .expect("RAND_1905760160");
                 }
             }
@@ -120,10 +117,12 @@ fn main() {
                 let mut cks = ChunkStore::new("/tmp/".to_string());
                 cks.add_tree(tree.clone(), &ctx);
                 mutator
-                    .mut_splice(&mut tree, &ctx, &mut cks, &mut tester)
+                    .mut_splice(&tree, &ctx, &cks, &mut tester)
                     .expect("RAND_842617595");
             }
         }
-        print!("\n");
+        println!();
+    } else {
+        println!("Usage: generator tree_size path_to_serialized_tree path_to_grammar mutation_method(havoc, rec, splice)");
     }
 }

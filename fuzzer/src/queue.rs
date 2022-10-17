@@ -53,7 +53,7 @@ impl QueueItem {
         exitreason: ExitReason,
         execution_time: u32,
     ) -> Self {
-        return QueueItem {
+        QueueItem {
             id,
             tree,
             fresh_bits,
@@ -62,7 +62,7 @@ impl QueueItem {
             state: InputState::Init(0),
             recursions: None,
             execution_time,
-        };
+        }
     }
 }
 
@@ -95,22 +95,22 @@ impl Queue {
         for (i, elem) in all_bits.iter().enumerate() {
             if *elem != 0 {
                 if !self.bit_to_inputs.contains_key(&i) {
-                    fresh_bits.insert(i.clone());
+                    fresh_bits.insert(i);
                 }
                 self.bit_to_inputs
                     .entry(i)
-                    .or_insert(vec![])
+                    .or_default()
                     .push(self.current_id);
             }
         }
 
         //Create File for entry
         let mut file = File::create(format!(
-            "{}/outputs/queue/id:{:09},er:{:?}",
-            self.work_dir, self.current_id, exitreason
+            "{}/outputs/queue/id:{:09},er:{exitreason:?}",
+            self.work_dir, self.current_id
         ))
         .expect("RAND_259979732");
-        tree.unparse_to(&ctx, &mut file);
+        tree.unparse_to(ctx, &mut file);
 
         //Add entry to queue
         self.inputs.push(QueueItem::new(
@@ -131,19 +131,18 @@ impl Queue {
     }
 
     pub fn new(work_dir: String) -> Self {
-        return Queue {
+        Queue {
             inputs: vec![],
             processed: vec![],
             bit_to_inputs: HashMap::new(),
             current_id: 0,
-            work_dir: work_dir,
-        };
+            work_dir,
+        }
     }
 
     pub fn pop(&mut self) -> Option<QueueItem> {
         let option = self.inputs.pop();
-        if option.is_some() {
-            let item = option.expect("RAND_607640468");
+        if let Some(item) = option {
             let id = item.id;
             let mut keys = Vec::with_capacity(self.bit_to_inputs.keys().len()); //TODO: Find a better solution for this
             {
@@ -160,7 +159,7 @@ impl Queue {
             }
             return Some(item);
         }
-        return None;
+        None
     }
 
     pub fn finished(&mut self, item: QueueItem) {
@@ -176,7 +175,7 @@ impl Queue {
                 self.work_dir, item.id, item.exitreason
             )) {
                 Err(ref err) if err.kind() != ErrorKind::NotFound => {
-                    println!("Error while deleting file: {}", err);
+                    println!("Error while deleting file: {err}");
                 }
                 _ => {}
             }
@@ -188,16 +187,16 @@ impl Queue {
         for (i, elem) in item.all_bits.iter().enumerate() {
             if *elem != 0 {
                 if !self.bit_to_inputs.contains_key(&i) {
-                    fresh_bits.insert(i.clone());
+                    fresh_bits.insert(i);
                 }
-                self.bit_to_inputs.entry(i).or_insert(vec![]).push(item.id);
+                self.bit_to_inputs.entry(i).or_default().push(item.id);
             }
         }
         self.processed.push(item);
     }
 
     pub fn len(&self) -> usize {
-        return self.inputs.len();
+        self.inputs.len()
     }
 
     pub fn new_round(&mut self) {

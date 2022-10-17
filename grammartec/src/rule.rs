@@ -38,17 +38,18 @@ fn show_bytes(bs: &[u8]) -> String {
         let part: Vec<u8> = escape_default(b).collect();
         visible.push_str(str::from_utf8(&part).unwrap());
     }
-    return format!("\"{}\"", visible);
+    format!("\"{visible}\"")
 }
 
 impl RuleChild {
+    #[must_use]
     pub fn from_lit(lit: &[u8]) -> Self {
-        return RuleChild::Term(lit.into());
+        RuleChild::Term(lit.into())
     }
 
     pub fn from_nt(nt: &str, ctx: &mut Context) -> Self {
         let (nonterm, _) = RuleChild::split_nt_description(nt);
-        return RuleChild::NTerm(ctx.aquire_nt_id(&nonterm));
+        RuleChild::NTerm(ctx.aquire_nt_id(&nonterm))
     }
 
     fn split_nt_description(nonterm: &str) -> (String, String) {
@@ -59,14 +60,14 @@ impl RuleChild {
         }
 
         //splits {A:a} or {A} into A and maybe a
-        let descr = SPLITTER.captures(nonterm).expect(&format!("could not interpret Nonterminal {:?}. Nonterminal Descriptions need to match start with a capital letter and con only contain [a-zA-Z_-0-9]",nonterm));
+        let descr = SPLITTER.captures(nonterm).unwrap_or_else(|| panic!("{}", "could not interpret Nonterminal {nonterm:?}. Nonterminal Descriptions need to match start with a capital letter and con only contain [a-zA-Z_-0-9]"));
         //let name = descr.get(2).map(|m| m.as_str().into()).unwrap_or(default.to_string()));
-        return (descr[1].into(), "".into());
+        (descr[1].into(), String::new())
     }
 
     fn debug_show(&self, ctx: &Context) -> String {
         match self {
-            RuleChild::Term(d) => show_bytes(&d),
+            RuleChild::Term(d) => show_bytes(d),
             RuleChild::NTerm(nt) => ctx.nt_id_to_s(*nt),
         }
     }
@@ -78,16 +79,17 @@ pub enum RuleIDOrCustom {
     Custom(RuleID, Vec<u8>),
 }
 impl RuleIDOrCustom {
+    #[must_use]
     pub fn id(&self) -> RuleID {
         match self {
-            RuleIDOrCustom::Rule(id) => return *id,
-            RuleIDOrCustom::Custom(id, _) => return *id,
+            RuleIDOrCustom::Rule(id) | RuleIDOrCustom::Custom(id, _) => *id,
         }
     }
 
+    #[must_use]
     pub fn data(&self) -> &[u8] {
         match self {
-            RuleIDOrCustom::Custom(_, data) => return data,
+            RuleIDOrCustom::Custom(_, data) => data,
             RuleIDOrCustom::Rule(_) => panic!("cannot get data on a normal rule"),
         }
     }
@@ -107,8 +109,9 @@ pub struct RegExpRule {
 }
 
 impl RegExpRule {
+    #[must_use]
     pub fn debug_show(&self, ctx: &Context) -> String {
-        return format!("{} => {:?}", ctx.nt_id_to_s(self.nonterm), self.hir);
+        format!("{} => {:?}", ctx.nt_id_to_s(self.nonterm), self.hir)
     }
 }
 
@@ -120,6 +123,7 @@ pub struct ScriptRule {
 }
 
 impl ScriptRule {
+    #[must_use]
     pub fn debug_show(&self, ctx: &Context) -> String {
         let args = self
             .nonterms
@@ -127,7 +131,7 @@ impl ScriptRule {
             .map(|nt| ctx.nt_id_to_s(*nt))
             .collect::<Vec<_>>()
             .join(", ");
-        return format!("{} => func({})", ctx.nt_id_to_s(self.nonterm), args);
+        format!("{} => func({args})", ctx.nt_id_to_s(self.nonterm))
     }
 }
 
@@ -139,6 +143,7 @@ pub struct PlainRule {
 }
 
 impl PlainRule {
+    #[must_use]
     pub fn debug_show(&self, ctx: &Context) -> String {
         let args = self
             .children
@@ -146,19 +151,17 @@ impl PlainRule {
             .map(|child| child.debug_show(ctx))
             .collect::<Vec<_>>()
             .join(", ");
-        return format!("{} => {}", ctx.nt_id_to_s(self.nonterm), args);
+        format!("{} => {args}", ctx.nt_id_to_s(self.nonterm))
     }
 }
 
 impl Clone for ScriptRule {
     fn clone(&self) -> Self {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-        return ScriptRule {
-            nonterm: self.nonterm.clone(),
+        Python::with_gil(|py| ScriptRule {
+            nonterm: self.nonterm,
             nonterms: self.nonterms.clone(),
             script: self.script.clone_ref(py),
-        };
+        })
     }
 }
 
@@ -166,7 +169,7 @@ impl Rule {
     pub fn from_script(
         ctx: &mut Context,
         nonterm: &str,
-        nterms: Vec<String>,
+        nterms: &[String],
         script: PyObject,
     ) -> Self {
         return Self::Script(ScriptRule {
@@ -186,12 +189,13 @@ impl Rule {
 
         let hir = parser.parse(regex).unwrap();
 
-        return Self::RegExp(RegExpRule {
+        Self::RegExp(RegExpRule {
             nonterm: ctx.aquire_nt_id(nonterm),
             hir,
-        });
+        })
     }
 
+    #[must_use]
     pub fn debug_show(&self, ctx: &Context) -> String {
         match self {
             Self::Plain(r) => r.debug_show(ctx),
@@ -212,21 +216,22 @@ impl Rule {
                 }
             })
             .collect();
-        return Self::Plain(PlainRule {
+        Self::Plain(PlainRule {
             nonterm: ctx.aquire_nt_id(nonterm),
             children,
             nonterms,
-        });
+        })
     }
 
-    pub fn from_term(ntermid: NTermID, term: &Vec<u8>) -> Self {
+    #[must_use]
+    pub fn from_term(ntermid: NTermID, term: &[u8]) -> Self {
         let children = vec![RuleChild::Term(term.to_vec())];
         let nonterms = vec![];
-        return Self::Plain(PlainRule {
+        Self::Plain(PlainRule {
             nonterm: ntermid,
             children,
             nonterms,
-        });
+        })
     }
 
     fn unescape(bytes: &[u8]) -> Vec<u8> {
@@ -252,7 +257,7 @@ impl Rule {
         if i < bytes.len() {
             res.push(bytes[bytes.len() - 1]);
         }
-        return res;
+        res
     }
 
     fn tokenize(format: &[u8], ctx: &mut Context) -> Vec<RuleChild> {
@@ -270,7 +275,7 @@ impl Rule {
                 if let Some(sub) = cap.get(1) {
                     //println!("cap.get(1): {}", sub.as_str());
                     RuleChild::from_nt(
-                        std::str::from_utf8(&sub.as_bytes())
+                        std::str::from_utf8(sub.as_bytes())
                             .expect("nonterminals need to be valid strings"),
                         ctx,
                     )
@@ -283,24 +288,27 @@ impl Rule {
             .collect::<Vec<_>>();
     }
 
+    #[must_use]
     pub fn nonterms(&self) -> &[NTermID] {
-        return match self {
+        match self {
             Rule::Script(r) => &r.nonterms,
             Rule::Plain(r) => &r.nonterms,
             Rule::RegExp(_) => &[],
-        };
+        }
     }
 
+    #[must_use]
     pub fn number_of_nonterms(&self) -> usize {
         return self.nonterms().len();
     }
 
+    #[must_use]
     pub fn nonterm(&self) -> NTermID {
-        return match self {
+        match self {
             Rule::Script(r) => r.nonterm,
             Rule::Plain(r) => r.nonterm,
             Rule::RegExp(r) => r.nonterm,
-        };
+        }
     }
 
     pub fn generate(&self, tree: &mut Tree, ctx: &Context, len: usize) -> usize {
@@ -326,18 +334,17 @@ impl Rule {
             let mut cur_child_max_len;
             let mut new_nterms = Vec::new();
             new_nterms.extend_from_slice(&self.nonterms()[i..]);
-            if new_nterms.len() != 0 {
-                cur_child_max_len = ctx.get_random_len(remaining_len, &new_nterms);
-            } else {
+            if new_nterms.is_empty() {
                 cur_child_max_len = remaining_len;
+            } else {
+                cur_child_max_len = ctx.get_random_len(remaining_len, &new_nterms);
             }
             cur_child_max_len += ctx.get_min_len_for_nt(*nt);
 
             //get a rule that can be used with the remaining length
             let rid = ctx.get_random_rule_for_nt(*nt, cur_child_max_len);
             let rule_or_custom = match ctx.get_rule(rid) {
-                Rule::Plain(_) => RuleIDOrCustom::Rule(rid),
-                Rule::Script(_) => RuleIDOrCustom::Rule(rid),
+                Rule::Plain(_) | Rule::Script(_) => RuleIDOrCustom::Rule(rid),
                 Rule::RegExp(RegExpRule { hir, .. }) => RuleIDOrCustom::Custom(
                     rid,
                     regex_mutator::generate(hir, thread_rng().gen::<u64>()),
@@ -373,6 +380,6 @@ impl Rule {
             total_size += consumed_len;
         }
         //println!("Rule: {}, Size: {}", ctx.nt_id_to_s(self.nonterm.clone()), total_size);
-        return total_size;
+        total_size
     }
 }

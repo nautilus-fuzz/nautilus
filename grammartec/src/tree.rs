@@ -52,57 +52,57 @@ impl<'data, 'tree: 'data, 'ctx: 'data, W: Write, T: TreeLike> Unparser<'data, 't
         let nt = tree.get_rule(NodeID::from(i), ctx).nonterm();
         let op = UnparseStep::<'data>::Nonterm(nt);
         let stack = vec![op];
-        return Self {
+        Self {
             stack,
             buffers: vec![],
             w,
             tree,
             i,
             ctx,
-        };
+        }
     }
 
     fn unparse_step(&mut self) -> bool {
         match self.stack.pop() {
             Some(UnparseStep::Term(data)) => self.write(data),
             Some(UnparseStep::Nonterm(nt)) => self.nonterm(nt),
-            Some(UnparseStep::Script(num, expr)) => self.unwrap_script(num, expr),
+            Some(UnparseStep::Script(num, expr)) => self.unwrap_script(num, &expr),
             Some(UnparseStep::PushBuffer()) => self.push_buffer(),
             None => return false,
         };
-        return true;
+        true
     }
 
     fn write(&mut self, data: &[u8]) {
         if let Some(buff) = self.buffers.last_mut() {
-            buff.write(data).unwrap();
+            buff.write_all(data).unwrap();
         } else {
-            self.w.write(data).unwrap();
+            self.w.write_all(data).unwrap();
         }
     }
 
     fn nonterm(&mut self, nt: NTermID) {
         self.next_rule(nt);
     }
-    fn unwrap_script(&mut self, num: usize, expr: PyObject) {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-        self.script(py, num, expr)
-            .map_err(|e| e.print_and_set_sys_last_vars(py))
-            .unwrap();
+    fn unwrap_script(&mut self, num: usize, expr: &PyObject) {
+        Python::with_gil(|py| {
+            self.script(py, num, expr)
+                .map_err(|e| e.print_and_set_sys_last_vars(py))
+                .unwrap();
+        });
     }
-    fn script(&mut self, py: Python, num: usize, expr: PyObject) -> PyResult<()> {
+    fn script(&mut self, py: Python, num: usize, expr: &PyObject) -> PyResult<()> {
         let bufs = self.buffers.split_off(self.buffers.len() - num);
         let bufs = bufs
             .into_iter()
-            .map(|cur| cur.into_inner())
+            .map(std::io::Cursor::into_inner)
             .collect::<Vec<_>>();
         let byte_arrays = bufs.iter().map(|b| PyBytes::new(py, b));
         let res = expr.call1(py, PyTuple::new(py, byte_arrays))?;
-        if res.as_ref(py).is_instance::<PyString>()? {
+        if res.as_ref(py).is_instance_of::<PyString>()? {
             let pystr = <&PyString>::extract(res.as_ref(py))?;
             self.write(pystr.to_string_lossy().as_bytes());
-        } else if res.as_ref(py).is_instance::<PyBytes>()? {
+        } else if res.as_ref(py).is_instance_of::<PyBytes>()? {
             let pybytes = <&PyBytes>::extract(res.as_ref(py))?;
             self.write(pybytes.as_bytes());
         } else {
@@ -110,7 +110,7 @@ impl<'data, 'tree: 'data, 'ctx: 'data, W: Write, T: TreeLike> Unparser<'data, 't
                 "script function should return string or bytes",
             ));
         }
-        return Ok(());
+        Ok(())
     }
 
     fn push_buffer(&mut self) {
@@ -132,7 +132,7 @@ impl<'data, 'tree: 'data, 'ctx: 'data, W: Write, T: TreeLike> Unparser<'data, 't
     fn next_plain(&mut self, r: &'ctx PlainRule) {
         for rule_child in r.children.iter().rev() {
             let op = match rule_child {
-                RuleChild::Term(data) => UnparseStep::<'data>::Term(&data),
+                RuleChild::Term(data) => UnparseStep::<'data>::Term(data),
                 RuleChild::NTerm(id) => UnparseStep::<'data>::Nonterm(*id),
             };
             self.stack.push(op);
@@ -141,12 +141,12 @@ impl<'data, 'tree: 'data, 'ctx: 'data, W: Write, T: TreeLike> Unparser<'data, 't
 
     fn next_script(&mut self, r: &ScriptRule) {
         {
-            let gil = Python::acquire_gil();
-            let py = gil.python();
-            self.stack.push(UnparseStep::Script(
-                r.nonterms.len(),
-                r.script.clone_ref(py),
-            ));
+            Python::with_gil(|py| {
+                self.stack.push(UnparseStep::Script(
+                    r.nonterms.len(),
+                    r.script.clone_ref(py),
+                ));
+            });
         }
         for nterm in r.nonterms.iter().rev() {
             self.stack.push(UnparseStep::Nonterm(*nterm));
@@ -155,12 +155,12 @@ impl<'data, 'tree: 'data, 'ctx: 'data, W: Write, T: TreeLike> Unparser<'data, 't
     }
 
     fn next_regexp(&mut self, data: &'tree [u8]) {
-        self.stack.push(UnparseStep::<'data>::Term(&data));
+        self.stack.push(UnparseStep::<'data>::Term(data));
     }
 
     fn unparse(&mut self) -> NodeID {
         while self.unparse_step() {}
-        return NodeID::from(self.i);
+        NodeID::from(self.i)
     }
 }
 
@@ -193,7 +193,7 @@ where
     fn unparse_node_to_vec(&self, n: NodeID, ctx: &Context) -> Vec<u8> {
         let mut data = vec![];
         self.unparse(n, ctx, &mut data);
-        return data;
+        data
     }
 
     fn unparse_print(&self, ctx: &Context) {
@@ -214,11 +214,11 @@ impl TreeLike for Tree {
     }
 
     fn size(&self) -> usize {
-        return self.rules.len();
+        self.rules.len()
     }
 
     fn to_tree(&self, _ctx: &Context) -> Tree {
-        return self.clone();
+        self.clone()
     }
 
     fn get_rule<'c>(&self, n: NodeID, ctx: &'c Context) -> &'c Rule {
@@ -233,6 +233,7 @@ impl TreeLike for Tree {
 }
 
 impl Tree {
+    #[must_use]
     pub fn from_rule_vec(rules: Vec<RuleIDOrCustom>, ctx: &Context) -> Self {
         let sizes = vec![0; rules.len()];
         let paren = vec![NodeID::from(0); rules.len()];
@@ -241,20 +242,23 @@ impl Tree {
             sizes,
             paren,
         };
-        if res.rules.len() > 0 {
+        if res.rules.is_empty() {
             res.calc_subtree_sizes_and_parents(ctx);
         }
-        return res;
+        res
     }
 
+    #[must_use]
     pub fn get_rule_id(&self, n: NodeID) -> RuleID {
-        return self.rules[n.to_i()].id();
+        self.rules[n.to_i()].id()
     }
 
+    #[must_use]
     pub fn subtree_size(&self, n: NodeID) -> usize {
-        return self.sizes[n.to_i()];
+        self.sizes[n.to_i()]
     }
 
+    #[must_use]
     pub fn mutate_replace_from_tree<'a>(
         &'a self,
         n: NodeID,
@@ -289,10 +293,10 @@ impl Tree {
             let nonterm = self.get_rule(node_id, ctx).nonterm();
             //sanity check
             let (nterm_id, node) = stack.pop().expect("Not a valid tree for unparsing!");
-            if nterm_id != nonterm {
-                panic!("Not a valid tree for unparsing!");
-            } else {
+            if nterm_id == nonterm {
                 self.paren[i] = node;
+            } else {
+                panic!("Not a valid tree for unparsing!");
             }
             let rule = self.get_rule(node_id, ctx);
             for nonterm in rule.nonterms().iter().rev() {
@@ -303,7 +307,7 @@ impl Tree {
 
     fn calc_sizes(&mut self) {
         //Initiate with 1
-        for size in self.sizes.iter_mut() {
+        for size in &mut self.sizes {
             *size = 1;
         }
         for i in (1..self.size()).rev() {
@@ -312,14 +316,16 @@ impl Tree {
     }
 
     fn slice(&self, from: NodeID, to: NodeID) -> &[RuleIDOrCustom] {
-        return &self.rules[from.into()..to.into()];
+        &self.rules[from.into()..to.into()]
     }
 
+    #[must_use]
     pub fn get_parent(&self, n: NodeID) -> Option<NodeID> {
-        if n != NodeID::from(0) {
-            return Some(self.paren[n.to_i()]);
+        if n == NodeID::from(0) {
+            None
+        } else {
+            Some(self.paren[n.to_i()])
         }
-        return None;
     }
 
     pub fn truncate(&mut self) {
@@ -340,7 +346,7 @@ impl Tree {
                 self.rules.push(RuleIDOrCustom::Rule(ruleid));
                 self.sizes.push(0);
                 self.paren.push(NodeID::from(0));
-                ctx.get_rule(ruleid).generate(self, &ctx, max_len);
+                ctx.get_rule(ruleid).generate(self, ctx, max_len);
                 self.sizes[0] = self.rules.len();
             }
             Rule::RegExp(RegExpRule { hir, .. }) => {
@@ -357,25 +363,27 @@ impl Tree {
         }
     }
 
+    #[must_use]
     pub fn calc_recursions(&self, ctx: &Context) -> Option<Vec<RecursionInfo>> {
         let mut ret = Vec::new();
         let mut done_nterms = HashSet::new();
         for rule in &self.rules {
-            let nterm = ctx.get_nt(&rule);
+            let nterm = ctx.get_nt(rule);
             if !done_nterms.contains(&nterm) {
-                match RecursionInfo::new(self, nterm, ctx) {
-                    Some(rec_info) => ret.push(rec_info),
-                    None => {}
+                if let Some(rec_info) = RecursionInfo::new(self, nterm, ctx) {
+                    ret.push(rec_info);
                 }
                 done_nterms.insert(nterm);
             }
         }
         if ret.is_empty() {
-            return None;
+            None
+        } else {
+            Some(ret)
         }
-        return Some(ret);
     }
 
+    #[must_use]
     pub fn find_recursions_iter(&self, ctx: &Context) -> Vec<(NodeID, NodeID)> {
         let mut found_recursions = Vec::new();
         //Only search for iterations for up to 10000 nodes
@@ -395,7 +403,7 @@ impl Tree {
                 depth += 1;
             }
         }
-        return found_recursions;
+        found_recursions
     }
 }
 
@@ -406,6 +414,7 @@ pub struct TreeMutation<'a> {
 }
 
 impl<'a> TreeMutation<'a> {
+    #[must_use]
     pub fn get_at(&self, n: NodeID) -> &'a RuleIDOrCustom {
         let i = n.to_i();
         let end0 = self.prefix.len();
@@ -426,11 +435,11 @@ impl<'a> TreeMutation<'a> {
 
 impl<'a> TreeLike for TreeMutation<'a> {
     fn get_rule_id(&self, n: NodeID) -> RuleID {
-        return self.get_at(n).id();
+        self.get_at(n).id()
     }
 
     fn size(&self) -> usize {
-        return self.prefix.len() + self.repl.len() + self.postfix.len();
+        self.prefix.len() + self.repl.len() + self.postfix.len()
     }
     fn get_rule_or_custom(&self, n: NodeID) -> &RuleIDOrCustom {
         self.get_at(n)
@@ -438,10 +447,10 @@ impl<'a> TreeLike for TreeMutation<'a> {
 
     fn to_tree(&self, ctx: &Context) -> Tree {
         let mut vec = vec![];
-        vec.extend_from_slice(&self.prefix);
-        vec.extend_from_slice(&self.repl);
-        vec.extend_from_slice(&self.postfix);
-        return Tree::from_rule_vec(vec, ctx);
+        vec.extend_from_slice(self.prefix);
+        vec.extend_from_slice(self.repl);
+        vec.extend_from_slice(self.postfix);
+        Tree::from_rule_vec(vec, ctx)
     }
 
     fn get_rule<'c>(&self, n: NodeID, ctx: &'c Context) -> &'c Rule {
@@ -468,7 +477,7 @@ mod tests {
             size += sub_size;
         }
         tree.sizes[n.to_i()] = size;
-        return size;
+        size
     }
 
     #[test]

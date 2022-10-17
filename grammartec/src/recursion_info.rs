@@ -43,16 +43,17 @@ impl fmt::Debug for RecursionInfo {
 }
 
 impl RecursionInfo {
+    #[must_use]
     pub fn new(t: &Tree, n: NTermID, ctx: &Context) -> Option<Self> {
         let (recursive_parents, node_by_offset, depth_by_offset) =
-            RecursionInfo::find_parents(&t, n, ctx)?;
+            RecursionInfo::find_parents(t, n, ctx)?;
         let sampler = RecursionInfo::build_sampler(&depth_by_offset);
-        return Some(Self {
+        Some(Self {
             recursive_parents,
             sampler,
-            node_by_offset,
             depth_by_offset,
-        });
+            node_by_offset,
+        })
     }
 
     // constructs a tree where each node points to the first ancestor with the same nonterminal (e.g. each node points the next node above it, were the pair forms a recursive occurance of a nonterminal).
@@ -82,43 +83,45 @@ impl RecursionInfo {
                     weights.push(depth);
                     res = Some((parents, ids, weights));
                 }
-                maybe_parent = Some(node)
+                maybe_parent = Some(node);
             }
             for _ in 0..ctx.get_num_children(rule) {
                 stack.push((maybe_parent, depth + 1));
             }
         }
-        return res;
+        res
     }
 
-    fn build_sampler(depths: &Vec<usize>) -> LoadedDiceSampler<StdRng> {
+    fn build_sampler(depths: &[usize]) -> LoadedDiceSampler<StdRng> {
         let mut weights = depths.iter().map(|x| *x as f64).collect::<Vec<_>>();
         let norm: f64 = weights.iter().sum();
         assert!(norm > 0.0);
-        for v in weights.iter_mut() {
+        for v in &mut weights {
             *v /= norm;
         }
-        return LoadedDiceSampler::new(
+        LoadedDiceSampler::new(
             weights,
             StdRng::from_rng(thread_rng()).expect("RAND_1769941938"),
-        );
+        )
     }
 
     pub fn get_random_recursion_pair(&mut self) -> (NodeID, NodeID) {
         let offset = self.sampler.sample();
-        return self.get_recursion_pair_by_offset(offset);
+        self.get_recursion_pair_by_offset(offset)
     }
 
+    #[must_use]
     pub fn get_recursion_pair_by_offset(&self, offset: usize) -> (NodeID, NodeID) {
         let node1 = self.node_by_offset[offset];
         let mut node2 = node1;
         for _ in 0..(self.depth_by_offset[offset]) {
             node2 = self.recursive_parents[&node1];
         }
-        return (node2, node1);
+        (node2, node1)
     }
 
+    #[must_use]
     pub fn get_number_of_recursions(&self) -> usize {
-        return self.node_by_offset.len();
+        self.node_by_offset.len()
     }
 }

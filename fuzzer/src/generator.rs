@@ -36,27 +36,27 @@ fn main() {
     let matches = App::new("generator")
         .about("Generate strings using a grammar. This can also be used to generate a corpus")
         .arg(Arg::with_name("grammar_path")
-             .short("g")
+             .short('g')
              .value_name("GRAMMAR")
              .takes_value(true)
              .required(true)
              .help("Path to grammar"))
         .arg(Arg::with_name("tree_depth")
-             .short("t")
+             .short('t')
              .value_name("DEPTH")
              .takes_value(true)
              .required(true)
              .help("Size of trees that are generated"))
         .arg(Arg::with_name("number_of_trees")
-             .short("n")
+             .short('n')
              .value_name("NUMBER")
              .takes_value(true)
              .help("Number of trees to generate [default: 1]"))
         .arg(Arg::with_name("store")
-             .short("s")
+             .short('s')
              .help("Store output to files. This will create a folder called corpus containing one file for each generated tree."))
         .arg(Arg::with_name("verbose")
-             .short("v")
+             .short('v')
              .help("Be verbose"))
         .get_matches();
 
@@ -76,7 +76,7 @@ fn main() {
         let gf = File::open(grammar_path).expect("cannot read grammar file");
         let rules: Vec<Vec<String>> =
             serde_json::from_reader(&gf).expect("cannot parse grammar file");
-        assert!(rules.len() > 0, "rule file didn_t include any rules");
+        assert!(!rules.is_empty(), "rule file didn_t include any rules");
         let root = "{".to_string() + &rules[0][0] + "}";
         ctx.add_rule("START", root.as_bytes());
         for rule in rules {
@@ -102,7 +102,7 @@ fn main() {
         let len = ctx.get_random_len_for_nt(&nonterm);
         let generated_tree = ctx.generate_tree_from_nt(nonterm, len); //1 is the index of the "START" Node
         if verbose {
-            println!("Generating tree {} from {}", i + 1, number_of_trees);
+            println!("Generating tree {} from {number_of_trees}", i + 1);
         }
         if store {
             let mut output =
@@ -114,7 +114,7 @@ fn main() {
             generated_tree.unparse_to(&ctx, &mut stdout_handle);
         }
 
-        let mut of_tree = File::create(&"/tmp/test_tree.ron").expect("cannot create output file");
+        let mut of_tree = File::create("/tmp/test_tree.ron").expect("cannot create output file");
         of_tree
             .write_all(
                 ron::ser::to_string(&generated_tree)
