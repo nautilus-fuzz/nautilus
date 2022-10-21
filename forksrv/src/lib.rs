@@ -16,11 +16,10 @@
 
 extern crate byteorder;
 extern crate nix;
+extern crate serde;
 extern crate snafu;
 extern crate tempfile;
 extern crate timeout_readwrite;
-#[macro_use]
-extern crate serde_derive;
 
 pub mod exitreason;
 pub mod newtypes;
@@ -48,7 +47,7 @@ use std::fs::File;
 use std::os::unix::io::FromRawFd;
 
 use exitreason::ExitReason;
-use newtypes::{QemuRunIO, QemuRunNix, SubprocessError};
+use newtypes::{QemuRunIOSnafu, QemuRunNixSnafu, SubprocessError};
 use snafu::ResultExt;
 
 pub struct ForkServer {
@@ -78,13 +77,12 @@ impl ForkServer {
         let args = Some(path.clone())
             .into_iter()
             .chain(args.into_iter())
-            .map(|s| if s == "@@" { inp_file_path.clone() } else { s })
-            .collect::<Vec<_>>();
+            .map(|s| if s == "@@" { inp_file_path.clone() } else { s });
         let (ctl_out, ctl_in) = nix::unistd::pipe().expect("failed to create ctl_pipe");
         let (st_out, st_in) = nix::unistd::pipe().expect("failed to create st_pipe");
         let (shm_file, shared_data) = ForkServer::create_shm(bitmap_size);
 
-        match fork().expect("couldn't fork") {
+        match unsafe { fork() }.expect("couldn't fork") {
             // Parent returns
             ForkResult::Parent { child: _, .. } => {
                 unistd::close(ctl_out).expect("coulnd't close ctl_out");
@@ -128,9 +126,10 @@ impl ForkServer {
                 let shm_id = CString::new(format!("__AFL_SHM_ID={shm_file}")).unwrap();
 
                 //Asan options: set asan SIG to 223 and disable leak detection
-                let asan_settings =
-                    CString::new("ASAN_OPTIONS=exitcode=223,abort_on_erro=true,detect_leaks=0")
-                        .expect("RAND_2089158993");
+                let asan_settings = CString::new(
+                    "ASAN_OPTIONS=exitcode=223,abort_on_erro=true,detect_leaks=0,symbolize=0",
+                )
+                .expect("RAND_2089158993");
 
                 let env = vec![shm_id, asan_settings];
 
@@ -152,42 +151,46 @@ impl ForkServer {
         for i in self.get_shared_mut().iter_mut() {
             *i = 0;
         }
-        unistd::ftruncate(self.inp_file.as_raw_fd(), 0).context(QemuRunNix {
+        unistd::ftruncate(self.inp_file.as_raw_fd(), 0).context(QemuRunNixSnafu {
             task: "Couldn't truncate inp_file",
         })?;
         unistd::lseek(self.inp_file.as_raw_fd(), 0, unistd::Whence::SeekSet).context(
-            QemuRunNix {
+            QemuRunNixSnafu {
                 task: "Couldn't seek inp_file",
             },
         )?;
-        unistd::write(self.inp_file.as_raw_fd(), data).context(QemuRunNix {
+        unistd::write(self.inp_file.as_raw_fd(), data).context(QemuRunNixSnafu {
             task: "Couldn't write data to inp_file",
         })?;
         unistd::lseek(self.inp_file.as_raw_fd(), 0, unistd::Whence::SeekSet).context(
-            QemuRunNix {
+            QemuRunNixSnafu {
                 task: "Couldn't seek inp_file",
             },
         )?;
 
-        unistd::write(self.ctl_in.as_raw_fd(), &[0, 0, 0, 0]).context(QemuRunNix {
+        unistd::write(self.ctl_in.as_raw_fd(), &[0, 0, 0, 0]).context(QemuRunNixSnafu {
             task: "Couldn't send start command",
         })?;
 
-        let pid = Pid::from_raw(self.st_out.read_i32::<LittleEndian>().context(QemuRunIO {
-            task: "Couldn't read target pid",
-        })?);
+        let pid = Pid::from_raw(self.st_out.read_i32::<LittleEndian>().context(
+            QemuRunIOSnafu {
+                task: "Couldn't read target pid",
+            },
+        )?);
 
         if let Ok(status) = self.st_out.read_i32::<LittleEndian>() {
             return Ok(ExitReason::from_wait_status(
                 WaitStatus::from_raw(pid, status).expect("402104968"),
             ));
         }
-        signal::kill(pid, Signal::SIGKILL).context(QemuRunNix {
+        signal::kill(pid, Signal::SIGKILL).context(QemuRunNixSnafu {
             task: "Couldn't kill timed out process",
         })?;
-        self.st_out.read_u32::<LittleEndian>().context(QemuRunIO {
-            task: "couldn't read timeout exitcode",
-        })?;
+        self.st_out
+            .read_u32::<LittleEndian>()
+            .context(QemuRunIOSnafu {
+                task: "couldn't read timeout exitcode",
+            })?;
         Ok(ExitReason::Timeouted)
     }
 

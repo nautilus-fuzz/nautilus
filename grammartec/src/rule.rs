@@ -21,6 +21,7 @@ use rand::thread_rng;
 use rand::Rng;
 use regex;
 use regex_syntax::hir::Hir;
+use serde::{Deserialize, Serialize};
 use tree::Tree;
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]

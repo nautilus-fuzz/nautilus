@@ -26,6 +26,7 @@ use std::sync::RwLock;
 use context::Context;
 use newtypes::{NTermID, NodeID, RuleID};
 use rule::RuleIDOrCustom;
+use serde::{Deserialize, Serialize};
 use tree::{Tree, TreeLike};
 
 pub struct ChunkStoreWrapper {
@@ -96,7 +97,7 @@ impl ChunkStore {
     }
 
     #[must_use]
-    pub fn get_alternative_to<'a>(&'a self, r: RuleID, ctx: &Context) -> Option<(&Tree, NodeID)> {
+    pub fn get_alternative_to(&self, r: RuleID, ctx: &Context) -> Option<(&Tree, NodeID)> {
         let chunks = self
             .nts_to_chunks
             .get(&ctx.get_nt(&RuleIDOrCustom::Rule(r)));

@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate time as othertime;
-use othertime::strftime;
-
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::fs::File;
@@ -26,6 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
 
+use chrono::Local;
 use forksrv::exitreason::ExitReason;
 use forksrv::newtypes::SubprocessError;
 use forksrv::ForkServer;
@@ -161,8 +159,7 @@ impl Fuzzer {
                     self.global_state
                         .lock()
                         .expect("RAND_202860771")
-                        .last_found_asan = strftime("[%Y-%m-%d] %H:%M:%S", &othertime::now())
-                        .expect("RAND_2888070412");
+                        .last_found_asan = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                     let mut file = File::create(format!(
                         "{}/outputs/signaled/ASAN_{:09}_{}",
                         self.work_dir,
@@ -204,8 +201,7 @@ impl Fuzzer {
                 self.global_state
                     .lock()
                     .expect("RAND_1706238230")
-                    .last_timeout =
-                    strftime("[%Y-%m-%d] %H:%M:%S", &othertime::now()).expect("RAND_1894162412");
+                    .last_timeout = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                 let mut file = File::create(format!(
                     "{}/outputs/timeout/{:09}",
                     self.work_dir, self.execution_count
@@ -222,8 +218,7 @@ impl Fuzzer {
                     self.global_state
                         .lock()
                         .expect("RAND_4287051369")
-                        .last_found_sig =
-                        strftime("[%Y-%m-%d] %H:%M:%S", &othertime::now()).expect("RAND_76391000");
+                        .last_found_sig = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                     let mut file = File::create(format!(
                         "{}/outputs/signaled/{sig:?}_{:09}",
                         self.work_dir, self.execution_count

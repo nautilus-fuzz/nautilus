@@ -247,9 +247,13 @@ impl Mutator {
             }
 
             //Adjust the sizes
-            for i in 0..num_of_recursions * recursion_len_pre {
-                if sizes_new[i] >= recursion_len_pre {
-                    sizes_new[i] +=
+            for (i, new_size) in sizes_new
+                .iter_mut()
+                .enumerate()
+                .take(num_of_recursions * recursion_len_pre)
+            {
+                if *new_size >= recursion_len_pre {
+                    *new_size +=
                         (num_of_recursions - i / recursion_len_pre - 1) * recursion_len_total;
                 }
             }
