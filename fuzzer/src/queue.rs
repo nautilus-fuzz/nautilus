@@ -25,6 +25,7 @@ use grammartec::context::Context;
 use grammartec::recursion_info::RecursionInfo;
 use grammartec::tree::Tree;
 use grammartec::tree::TreeLike;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Clone, Deserialize)]
 pub enum InputState {

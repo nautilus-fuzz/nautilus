@@ -29,6 +29,7 @@ use rand::thread_rng;
 use rand::Rng;
 use recursion_info::RecursionInfo;
 use rule::{PlainRule, RegExpRule, Rule, RuleChild, RuleIDOrCustom, ScriptRule};
+use serde::{Deserialize, Serialize};
 
 enum UnparseStep<'dat> {
     Term(&'dat [u8]),
@@ -242,7 +243,7 @@ impl Tree {
             sizes,
             paren,
         };
-        if res.rules.is_empty() {
+        if !res.rules.is_empty() {
             res.calc_subtree_sizes_and_parents(ctx);
         }
         res

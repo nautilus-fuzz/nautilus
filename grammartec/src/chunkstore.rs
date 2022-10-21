@@ -26,6 +26,7 @@ use std::sync::RwLock;
 use context::Context;
 use newtypes::{NTermID, NodeID, RuleID};
 use rule::RuleIDOrCustom;
+use serde::{Deserialize, Serialize};
 use tree::{Tree, TreeLike};
 
 pub struct ChunkStoreWrapper {

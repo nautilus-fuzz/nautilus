@@ -19,7 +19,7 @@ use snafu::{Backtrace, Snafu};
 use std::path::PathBuf;
 
 #[derive(Debug, Snafu)]
-#[snafu(visibility = "pub")]
+#[snafu(visibility(pub))]
 pub enum SubprocessError {
     #[snafu(display("Could not handle qemu trace file to {} {}", path.display(), source))]
     ReadQemuTrace {

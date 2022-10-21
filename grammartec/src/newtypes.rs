@@ -17,6 +17,8 @@
 use std::iter::Step;
 use std::ops::Add;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash, Serialize, Deserialize)]
 pub struct RuleID(usize);
 

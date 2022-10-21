@@ -71,12 +71,12 @@ impl Context {
 
     #[must_use]
     pub fn get_nt(&self, r: &RuleIDOrCustom) -> NTermID {
-        return self.get_rule(r.id()).nonterm();
+        self.get_rule(r.id()).nonterm()
     }
 
     #[must_use]
     pub fn get_num_children(&self, r: &RuleIDOrCustom) -> usize {
-        return self.get_rule(r.id()).number_of_nonterms();
+        self.get_rule(r.id()).number_of_nonterms()
     }
 
     pub fn add_rule(&mut self, nt: &str, format: &[u8]) -> RuleID {

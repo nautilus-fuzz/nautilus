@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern crate time as othertime;
-use othertime::strftime;
+use othertime::{format_description, macros::format_description as fd, OffsetDateTime};
 
 use std::collections::HashSet;
 use std::collections::VecDeque;
@@ -43,6 +43,10 @@ pub enum ExecutionReason {
     Det,
     Gen,
 }
+
+// [%Y-%m-%d] %H:%M:%S"
+const FORMAT: &[format_description::FormatItem<'static>] =
+    fd!("[[[year]-[month]-[day]] [hour]:[minute]:[second]");
 
 pub struct Fuzzer {
     forksrv: ForkServer,
@@ -161,8 +165,10 @@ impl Fuzzer {
                     self.global_state
                         .lock()
                         .expect("RAND_202860771")
-                        .last_found_asan = strftime("[%Y-%m-%d] %H:%M:%S", &othertime::now())
-                        .expect("RAND_2888070412");
+                        .last_found_asan = OffsetDateTime::now_local()
+                        .expect("RAND_2507528406")
+                        .format(&FORMAT)
+                        .expect("RAND_2021311667");
                     let mut file = File::create(format!(
                         "{}/outputs/signaled/ASAN_{:09}_{}",
                         self.work_dir,
@@ -204,8 +210,10 @@ impl Fuzzer {
                 self.global_state
                     .lock()
                     .expect("RAND_1706238230")
-                    .last_timeout =
-                    strftime("[%Y-%m-%d] %H:%M:%S", &othertime::now()).expect("RAND_1894162412");
+                    .last_timeout = OffsetDateTime::now_local()
+                    .expect("RAND_3696136157")
+                    .format(&FORMAT)
+                    .expect("RAND_2685260663");
                 let mut file = File::create(format!(
                     "{}/outputs/timeout/{:09}",
                     self.work_dir, self.execution_count
@@ -222,8 +230,10 @@ impl Fuzzer {
                     self.global_state
                         .lock()
                         .expect("RAND_4287051369")
-                        .last_found_sig =
-                        strftime("[%Y-%m-%d] %H:%M:%S", &othertime::now()).expect("RAND_76391000");
+                        .last_found_sig = OffsetDateTime::now_local()
+                        .expect("RAND_2474954874")
+                        .format(&FORMAT)
+                        .expect("RAND_2057462052");
                     let mut file = File::create(format!(
                         "{}/outputs/signaled/{sig:?}_{:09}",
                         self.work_dir, self.execution_count
