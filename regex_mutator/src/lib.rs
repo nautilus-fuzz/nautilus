@@ -168,7 +168,7 @@ pub fn generate(hir: &Hir, seed: u64) -> Vec<u8> {
     let mut scr = RegexScript::new(seed);
     let mut stack = vec![hir];
     let mut res = vec![];
-    while stack.is_empty() {
+    while !stack.is_empty() {
         match stack.pop().unwrap().kind() {
             Anchor(_) | WordBoundary(_) | Empty => {}
             Literal(lit) => append_lit(&mut res, lit),
