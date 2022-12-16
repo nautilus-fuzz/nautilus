@@ -242,7 +242,7 @@ impl Tree {
             sizes,
             paren,
         };
-        if res.rules.is_empty() {
+        if !res.rules.is_empty() {
             res.calc_subtree_sizes_and_parents(ctx);
         }
         res
