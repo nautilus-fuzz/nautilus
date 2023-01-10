@@ -2,6 +2,7 @@
 name = "regex_mutator"
 version = "0.2.0"
 authors = ["coco <cornelius@hexgolems.com>"]
+rust-version.workspace = true
 description = "The Nautilus regex_mutator"
 license = "AGPL-3.0"
 repository = "https://github.com/nautilus-fuzz/nautilus"

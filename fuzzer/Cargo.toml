@@ -2,6 +2,7 @@
 name = "fuzzer"
 version = "0.2.0"
 authors = ["coco <coco@hexgolems.com>"]
+rust-version.workspace = true
 description = "The Nautilus fuzzer"
 license = "AGPL-3.0"
 default-run = "fuzzer"

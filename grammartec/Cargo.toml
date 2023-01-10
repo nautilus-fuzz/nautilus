@@ -2,6 +2,7 @@
 name = "grammartec"
 version = "0.2.0"
 authors = ["coco <coco@hexgolems.com>"]
+rust-version.workspace = true
 description = "The Nautilus grammartec"
 license = "AGPL-3.0"
 repository = "https://github.com/nautilus-fuzz/nautilus"

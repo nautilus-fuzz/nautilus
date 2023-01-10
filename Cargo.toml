@@ -6,4 +6,6 @@ members = [
   "fuzzer",
 ]
 
+package.rust-version = "1.58"
+
 default-members = ["fuzzer"]
