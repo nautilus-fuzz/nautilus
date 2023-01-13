@@ -8,18 +8,16 @@ default-run = "fuzzer"
 repository = "https://github.com/nautilus-fuzz/nautilus"
 
 [dependencies]
-nix = "0.17.0"
-time = "0.1"
-subprocess = "0.2.4"
+nix = "0.26"
+chrono = { version = "0.4", default-features = false, features = ["clock"]}
 grammartec = {path = "../grammartec", version = "0.2"}
 forksrv =  {path = "../forksrv", version = "0.2"}
-libc = "*"
-serde = "1.0"
+libc = "0.2"
+# ron complains with serde version <= 1.0.102
+serde = { version = "1.0.103", features = ["derive"] }
 serde_json = "1.0"
-serde_derive = "1.0"
-argparse = "0.2.2"
-ron = "*"
-clap = "3.2"
+ron = "0.8"
+clap = "4.0"
 pyo3 = "0.17"
 
 [[bin]]

@@ -4,7 +4,7 @@ Config(
 	path_to_bin_target:                     "./test",
 	arguments: 				[ "@@"],	//"@@" will be exchanged with the path of a file containing the current input
 
-	path_to_grammar:                        "grammars/grammar_py_example.py",
+	path_to_grammar:                        "test_cases/grammar_regex_root.py",
 	path_to_workdir:                        "/tmp/workdir",
 
 	number_of_threads:			1,

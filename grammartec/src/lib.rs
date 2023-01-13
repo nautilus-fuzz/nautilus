@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#![feature(exclusive_range_pattern)]
-#![feature(step_trait)]
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate serde_derive;
 extern crate loaded_dice;
 extern crate num;
 extern crate pyo3;
@@ -27,6 +23,7 @@ extern crate rand;
 extern crate regex;
 extern crate regex_mutator;
 extern crate regex_syntax;
+extern crate serde;
 
 pub mod chunkstore;
 pub mod context;

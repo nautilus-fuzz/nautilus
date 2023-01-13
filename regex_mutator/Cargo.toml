@@ -9,4 +9,4 @@ repository = "https://github.com/nautilus-fuzz/nautilus"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regex-syntax = "0.6.17"
+regex-syntax = "0.6"

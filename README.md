@@ -37,7 +37,7 @@ cd nautilus
 
 mkdir /tmp/workdir
 # all arguments can also be set using the config.ron file
-cargo run --release -- -g grammars/grammar_py_example.py -o /tmp/workdir -- ./test @@
+cargo run --release -- -g test_cases/grammar_regex_root.py -o /tmp/workdir -- ./test @@
 
 # or if you want to use QEMU mode:
 cargo run /path/to/AFLplusplus/afl-qemu-trace -- ./test_bin @@

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::iter::Step;
 use std::ops::Add;
+
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash, Serialize, Deserialize)]
 pub struct RuleID(usize);
@@ -75,23 +76,6 @@ impl Add<usize> for NodeID {
     type Output = NodeID;
     fn add(self, rhs: usize) -> NodeID {
         NodeID(self.0 + rhs)
-    }
-}
-
-impl Step for NodeID {
-    fn steps_between(start: &Self, end: &Self) -> Option<usize> {
-        let start_i = start.to_i();
-        let end_i = end.to_i();
-        if start > end {
-            return None;
-        }
-        Some(end_i - start_i)
-    }
-    fn forward_checked(start: Self, count: usize) -> Option<Self> {
-        start.0.checked_add(count).map(NodeID::from)
-    }
-    fn backward_checked(start: Self, count: usize) -> Option<Self> {
-        start.0.checked_sub(count).map(NodeID::from)
     }
 }
 
@@ -161,21 +145,5 @@ mod tests {
         assert_eq!(i2, r2.into());
         let r3 = r2 + 3;
         assert_eq!(r3, 1341.into());
-    }
-    #[test]
-    fn test_node_id_trait_step_impl() {
-        let x = 1337;
-        let y = 1360;
-        let r1: NodeID = x.into();
-        let r2 = NodeID::from(y);
-        let mut sum_from_nodes = 0;
-        for node in r1..r2 {
-            sum_from_nodes += node.to_i();
-        }
-        let mut sum_from_ints = 0;
-        for i in x..y {
-            sum_from_ints += i;
-        }
-        assert_eq!(sum_from_ints, sum_from_nodes);
     }
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#[macro_use]
 extern crate clap;
 extern crate grammartec;
 extern crate pyo3;
@@ -25,7 +24,7 @@ mod python_grammar_loader;
 use grammartec::context::Context;
 use grammartec::tree::TreeLike;
 
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use std::fs;
 use std::fs::File;
 use std::io::{self, Write};
@@ -33,42 +32,44 @@ use std::path::Path;
 
 fn main() {
     //Parse parameters
-    let matches = App::new("generator")
+    let matches = Command::new("generator")
         .about("Generate strings using a grammar. This can also be used to generate a corpus")
-        .arg(Arg::with_name("grammar_path")
+        .arg(Arg::new("grammar_path")
              .short('g')
              .value_name("GRAMMAR")
-             .takes_value(true)
+             .action(clap::ArgAction::Set)
              .required(true)
              .help("Path to grammar"))
-        .arg(Arg::with_name("tree_depth")
+        .arg(Arg::new("tree_depth")
              .short('t')
              .value_name("DEPTH")
-             .takes_value(true)
+             .action(clap::ArgAction::Set)
              .required(true)
              .help("Size of trees that are generated"))
-        .arg(Arg::with_name("number_of_trees")
+        .arg(Arg::new("number_of_trees")
              .short('n')
              .value_name("NUMBER")
-             .takes_value(true)
+             .action(clap::ArgAction::Set)
              .help("Number of trees to generate [default: 1]"))
-        .arg(Arg::with_name("store")
+        .arg(Arg::new("store")
              .short('s')
              .help("Store output to files. This will create a folder called corpus containing one file for each generated tree."))
-        .arg(Arg::with_name("verbose")
+        .arg(Arg::new("verbose")
              .short('v')
              .help("Be verbose"))
         .get_matches();
 
     let grammar_path = matches
-        .value_of("grammar_path")
+        .get_one::<String>("grammar_path")
         .expect("grammar_path is a required parameter")
         .to_string();
-    let tree_depth =
-        value_t!(matches, "tree_depth", usize).expect("tree_depth is a requried parameter");
-    let number_of_trees = value_t!(matches, "number_of_trees", usize).unwrap_or(1);
-    let store = matches.is_present("store");
-    let verbose = matches.is_present("verbose");
+    let tree_depth = *matches
+        .get_one::<usize>("tree_depth")
+        .expect("tree_depth is a requried parameter");
+    //let number_of_trees = value_t!(matches, "number_of_trees", usize).unwrap_or(1);
+    let number_of_trees = *matches.get_one::<usize>("number_of_trees").unwrap_or(&1);
+    let store = matches.get_flag("store");
+    let verbose = matches.get_flag("verbose");
 
     let mut ctx = Context::new();
     //Create new Context and saved it

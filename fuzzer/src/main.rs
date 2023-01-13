@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+extern crate chrono;
+extern crate clap;
 extern crate forksrv;
 extern crate grammartec;
-extern crate serde_json;
-extern crate time as othertime;
-#[macro_use]
-extern crate serde_derive;
-extern crate clap;
 extern crate pyo3;
 extern crate ron;
+extern crate serde;
+extern crate serde_json;
 
 mod config;
 mod fuzzer;
@@ -40,7 +39,8 @@ use queue::{InputState, QueueItem};
 use shared_state::GlobalSharedState;
 use state::FuzzingState;
 
-use clap::{App, Arg};
+use chrono::Local;
+use clap::{Arg, Command};
 use std::fs;
 use std::fs::File;
 use std::io::Read;
@@ -202,41 +202,42 @@ fn fuzzing_thread(
 
 fn main() {
     //Parse parameters
-    let matches = App::new("nautilus")
+    let matches = Command::new("nautilus")
         .about("Grammar fuzzer")
-        .setting(clap::AppSettings::TrailingVarArg)
         .arg(
-            Arg::with_name("config")
+            Arg::new("config")
                 .short('c')
                 .value_name("CONFIG")
-                .takes_value(true)
+                .action(clap::ArgAction::Set)
                 .help("Path to configuration file")
                 .default_value("config.ron"),
         )
         .arg(
-            Arg::with_name("grammar")
+            Arg::new("grammar")
                 .short('g')
-                .takes_value(true)
+                .action(clap::ArgAction::Set)
                 .help("Overwrite the grammar file specified in the CONFIG"),
         )
         .arg(
-            Arg::with_name("workdir")
+            Arg::new("workdir")
                 .short('o')
-                .takes_value(true)
+                .action(clap::ArgAction::Set)
                 .help("Overwrite the workdir specified in the CONFIG"),
         )
-        .arg(Arg::with_name("cmdline").multiple(true))
+        .arg(
+            Arg::new("cmdline")
+                .action(clap::ArgAction::Append)
+                .trailing_var_arg(true),
+        )
         .get_matches();
 
     let config_file_path = matches
-        .value_of("config")
+        .get_one::<String>("config")
         .expect("the path to the configuration file has a default value");
 
     println!(
         "{} Starting Fuzzing...",
-        othertime::now()
-            .strftime("[%Y-%m-%d] %H:%M:%S")
-            .expect("RAND_1939191497")
+        Local::now().format("[%Y-%m-%d] %H:%M:%S")
     );
 
     //Set Config
@@ -249,7 +250,7 @@ fn main() {
         ron::de::from_str(&config_file_contents).expect("Failed to deserialize");
 
     let workdir = matches
-        .value_of("workdir")
+        .get_one("workdir")
         .unwrap_or(&config.path_to_workdir)
         .to_string();
     config.path_to_workdir = workdir;
@@ -261,7 +262,7 @@ fn main() {
         config.path_to_workdir
     );
 
-    if let Some(mut cmdline) = matches.values_of("cmdline") {
+    if let Some(mut cmdline) = matches.get_many::<String>("cmdline") {
         if cmdline.len() > 0 {
             config.path_to_bin_target = cmdline.next().unwrap().to_string();
             config.arguments = cmdline.map(std::string::ToString::to_string).collect();
@@ -282,7 +283,7 @@ fn main() {
 
     let mut my_context;
     let grammar_path = matches
-        .value_of("grammar")
+        .get_one::<String>("grammar")
         .unwrap_or(&config.path_to_grammar)
         .to_owned();
 
