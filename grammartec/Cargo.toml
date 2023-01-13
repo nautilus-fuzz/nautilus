@@ -1,6 +1,6 @@
 [package]
 name = "grammartec"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["coco <coco@hexgolems.com>"]
 description = "The Nautilus grammartec"
 license = "AGPL-3.0"
@@ -11,7 +11,7 @@ readme = "../README.md"
 regex = "1"
 lazy_static= "1"
 rand = "0.8"
-regex_mutator = {path = "../regex_mutator", version = "0.2"}
+regex_mutator = {path = "../regex_mutator", version = "0.3"}
 regex-syntax = "0.6"
 serde = { version = "1", features = ["derive"] }
 loaded_dice = "0.2.2"

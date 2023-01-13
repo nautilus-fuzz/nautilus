@@ -1,6 +1,6 @@
 [package]
 name = "fuzzer"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["coco <coco@hexgolems.com>"]
 description = "The Nautilus fuzzer"
 license = "AGPL-3.0"
@@ -10,8 +10,8 @@ repository = "https://github.com/nautilus-fuzz/nautilus"
 [dependencies]
 nix = "0.26"
 chrono = { version = "0.4", default-features = false, features = ["clock"]}
-grammartec = {path = "../grammartec", version = "0.2"}
-forksrv =  {path = "../forksrv", version = "0.2"}
+grammartec = {path = "../grammartec", version = "0.3"}
+forksrv =  {path = "../forksrv", version = "0.3"}
 libc = "0.2"
 # ron complains with serde version <= 1.0.102
 serde = { version = "1.0.103", features = ["derive"] }

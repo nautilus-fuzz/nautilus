@@ -194,7 +194,7 @@ dependencies = [
 
 [[package]]
 name = "forksrv"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "byteorder",
  "libc",
@@ -207,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "fuzzer"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "clap",
@@ -234,7 +234,7 @@ dependencies = [
 
 [[package]]
 name = "grammartec"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lazy_static",
  "loaded_dice",
@@ -703,7 +703,7 @@ checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
 
 [[package]]
 name = "regex_mutator"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "regex-syntax",
 ]
