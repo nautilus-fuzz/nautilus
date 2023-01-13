@@ -198,7 +198,7 @@ version = "0.2.0"
 dependencies = [
  "byteorder",
  "libc",
- "nix 0.26.1",
+ "nix",
  "serde",
  "snafu",
  "tempfile",
@@ -214,7 +214,7 @@ dependencies = [
  "forksrv",
  "grammartec",
  "libc",
- "nix 0.26.1",
+ "nix",
  "pyo3",
  "ron",
  "serde",
@@ -415,19 +415,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5de893c32cde5f383baa4c04c5d6dbdd735cfd4a794b0debdb2bb1b421da5ff4"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "nix"
-version = "0.23.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f3790c00a0150112de0f4cd161e3d7fc4b2d8a5542ffc35f099a2562aecb35c"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if",
- "libc",
- "memoffset 0.6.5",
 ]
 
 [[package]]
@@ -873,11 +860,11 @@ dependencies = [
 
 [[package]]
 name = "timeout-readwrite"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61e9b6279ee83562e5f8ac37bbd4ca032016616c9f5688b0d1b7775619619dce"
+checksum = "37312ddc0adbd0f112618a4250ac586448151ff6d69241ff061b29b883349f3e"
 dependencies = [
- "nix 0.23.2",
+ "nix",
 ]
 
 [[package]]
