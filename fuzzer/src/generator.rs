@@ -24,11 +24,11 @@ mod python_grammar_loader;
 use grammartec::context::Context;
 use grammartec::tree::TreeLike;
 
-use clap::{Arg, Command};
+use clap::{value_parser, Arg, ArgAction, Command};
 use std::fs;
 use std::fs::File;
 use std::io::{self, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 fn main() {
     //Parse parameters
@@ -37,56 +37,59 @@ fn main() {
         .arg(Arg::new("grammar_path")
              .short('g')
              .value_name("GRAMMAR")
-             .action(clap::ArgAction::Set)
              .required(true)
+             .value_parser(value_parser!(PathBuf))
              .help("Path to grammar"))
         .arg(Arg::new("tree_depth")
              .short('t')
              .value_name("DEPTH")
-             .action(clap::ArgAction::Set)
              .required(true)
+             .value_parser(value_parser!(usize))
              .help("Size of trees that are generated"))
         .arg(Arg::new("number_of_trees")
              .short('n')
              .value_name("NUMBER")
-             .action(clap::ArgAction::Set)
-             .help("Number of trees to generate [default: 1]"))
+             .value_parser(value_parser!(usize))
+             .default_value("1")
+             .help("Number of trees to generate"))
         .arg(Arg::new("store")
              .short('s')
+             .action(ArgAction::SetTrue)
              .help("Store output to files. This will create a folder called corpus containing one file for each generated tree."))
         .arg(Arg::new("verbose")
              .short('v')
+             .action(ArgAction::SetTrue)
              .help("Be verbose"))
         .get_matches();
 
     let grammar_path = matches
-        .get_one::<String>("grammar_path")
-        .expect("grammar_path is a required parameter")
-        .to_string();
+        .get_one::<PathBuf>("grammar_path")
+        .expect("grammar_path is a required parameter");
     let tree_depth = *matches
         .get_one::<usize>("tree_depth")
         .expect("tree_depth is a requried parameter");
-    //let number_of_trees = value_t!(matches, "number_of_trees", usize).unwrap_or(1);
     let number_of_trees = *matches.get_one::<usize>("number_of_trees").unwrap_or(&1);
     let store = matches.get_flag("store");
     let verbose = matches.get_flag("verbose");
 
     let mut ctx = Context::new();
     //Create new Context and saved it
-    if grammar_path.ends_with(".json") {
-        let gf = File::open(grammar_path).expect("cannot read grammar file");
-        let rules: Vec<Vec<String>> =
-            serde_json::from_reader(&gf).expect("cannot parse grammar file");
-        assert!(!rules.is_empty(), "rule file didn_t include any rules");
-        let root = "{".to_string() + &rules[0][0] + "}";
-        ctx.add_rule("START", root.as_bytes());
-        for rule in rules {
-            ctx.add_rule(&rule[0], rule[1].as_bytes());
+    match grammar_path.extension() {
+        Some(ext) if ext == "json" => {
+            let gf = File::open(grammar_path).expect("cannot read grammar file");
+            let rules: Vec<Vec<String>> =
+                serde_json::from_reader(&gf).expect("cannot parse grammar file");
+            assert!(!rules.is_empty(), "rule file didn_t include any rules");
+            let root = "{".to_string() + &rules[0][0] + "}";
+            ctx.add_rule("START", root.as_bytes());
+            for rule in rules {
+                ctx.add_rule(&rule[0], rule[1].as_bytes());
+            }
         }
-    } else if grammar_path.ends_with(".py") {
-        ctx = python_grammar_loader::load_python_grammar(&grammar_path);
-    } else {
-        panic!("Unknown grammar type");
+        Some(ext) if ext == "py" => {
+            ctx = python_grammar_loader::load_python_grammar(grammar_path.to_str().unwrap())
+        }
+        Some(_) | None => panic!("Unknown grammar type"),
     }
 
     ctx.initialize(tree_depth);
