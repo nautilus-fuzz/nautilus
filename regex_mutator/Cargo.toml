@@ -1,6 +1,6 @@
 [package]
 name = "regex_mutator"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["coco <cornelius@hexgolems.com>"]
 description = "The Nautilus regex_mutator"
 license = "AGPL-3.0"

@@ -1,6 +1,6 @@
 [package]
 name = "fuzzer"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["coco <coco@hexgolems.com>"]
 description = "The Nautilus fuzzer"
 license = "AGPL-3.0"
