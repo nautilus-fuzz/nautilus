@@ -228,7 +228,8 @@ impl ForkServer {
                 "shmclt {:?}",
                 CString::from_raw(strerror(errno()))
             );
-            (shm_id, trace_bits.cast::<[u8; 65536]>())
+            let ptr: *mut u8 = trace_bits.cast();
+            (shm_id, std::slice::from_raw_parts_mut(ptr,bitmap_size))
         }
     }
 }

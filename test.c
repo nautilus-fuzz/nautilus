@@ -37,5 +37,7 @@ int main(int argc, char **argv) {
                 else    printf("%c",ptr[1]);
         }
         else    printf("%c",ptr[0]);
+
+        printf("\n");
         return 0;
 }

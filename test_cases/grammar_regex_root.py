@@ -1,1 +1,1 @@
-ctx.regex("START","[a-z]+")
+ctx.regex("START","^[a-z]{8}$")
