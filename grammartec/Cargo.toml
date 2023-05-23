@@ -1,6 +1,6 @@
 [package]
 name = "grammartec"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["coco <coco@hexgolems.com>"]
 description = "The Nautilus grammartec"
 license = "AGPL-3.0"
@@ -16,4 +16,4 @@ regex-syntax = "0.6"
 serde = { version = "1", features = ["derive"] }
 loaded_dice = "0.2.2"
 num = "0.4"
-pyo3 = "0.17"
+pyo3 = "0.18"
