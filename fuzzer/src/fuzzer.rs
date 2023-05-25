@@ -301,9 +301,9 @@ impl Fuzzer {
             .expect("failed to execute luac");
         
         let luac_path = Path::new(&luac_file);
-        let mut is_exist = 0;
+        let is_exist: bool;
         if luac_path.exists() {
-            is_exist = 1;
+            is_exist = true;
             if let Err(err) = fs::remove_file(luac_file) {
                 println!("Error deleting file: {:?}",err);
             }
@@ -312,12 +312,12 @@ impl Fuzzer {
             }
         }
         else{
-            is_exist = 0;
+            is_exist = false;
         }
         
         self.total_testcast_count+=1;
 
-        if is_exist == 1 {
+        if is_exist {
             let exitreason = self.forksrv.run(code)?;
             self.execution_count += 1;
 
