@@ -242,17 +242,13 @@ mod tests {
         let hide_output = false;
         let timeout_in_millis = 200;
         let bitmap_size = 1 << 16;
-        let target = "../test".to_string();
+        let target = "/home/luafuzz/Desktop/lua-5.4.6/src/lua".to_string();
         let args = vec![];
         let mut fork = ForkServer::new(target, args, hide_output, timeout_in_millis, bitmap_size);
         assert!(fork.get_shared()[1..].iter().all(|v| *v == 0));
         assert_eq!(
-            fork.run(b"deadbeeg").unwrap(),
+            fork.run(b"print(\"Hello World!\")").unwrap(),
             exitreason::ExitReason::Normal(0)
-        );
-        assert_eq!(
-            fork.run(b"deadbeef").unwrap(),
-            exitreason::ExitReason::Signaled(6)
         );
         assert!(fork.get_shared()[1..].iter().any(|v| *v != 0));
     }

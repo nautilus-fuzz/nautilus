@@ -169,6 +169,7 @@ fn fuzzing_thread(
         stats.average_executions_per_sec += state.fuzzer.average_executions_per_sec as u32;
         stats.average_executions_per_sec -= old_executions_per_sec;
         old_executions_per_sec = state.fuzzer.average_executions_per_sec as u32;
+        stats.pass_rate = state.fuzzer.pass_rate;
         if state.fuzzer.bits_found_by_havoc > 0 {
             stats.bits_found_by_havoc += state.fuzzer.bits_found_by_havoc;
             state.fuzzer.bits_found_by_havoc = 0;
@@ -365,9 +366,11 @@ fn main() {
                     let last_timeout;
                     let total_found_asan;
                     let total_found_sig;
+                    let pass_rate;
                     {
                         let shared_state = global_state.lock().expect("RAND_597319831");
                         execution_count = shared_state.execution_count;
+                        pass_rate = shared_state.pass_rate;
                         average_executions_per_sec = shared_state.average_executions_per_sec;
                         queue_len = shared_state.queue.len();
                         bits_found_by_gen = shared_state.bits_found_by_gen;
@@ -491,8 +494,12 @@ fn main() {
                         bits_found_by_havoc_rec
                     );
                     println!(
-                        "Total paths found:    {}                       ",
+                        "Total paths found:               {}                       ",
                         total_found_path
+                    );
+                    println!(
+                        "Pass rate:                       {:.2}                       ",
+                        pass_rate
                     );
                     println!("------------------------------------------------------    ");
                     //println!("Global bitmap: {:?}", global_state.lock().expect("RAND_1887203473").bitmaps.get(&false).expect("RAND_1887203473"));

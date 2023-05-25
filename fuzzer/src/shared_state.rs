@@ -22,6 +22,7 @@ pub struct GlobalSharedState {
     //false for not crashing input. True for crashing inputs
     pub bitmaps: HashMap<bool, Vec<u8>>,
     pub execution_count: u64,
+    pub pass_rate: f64,
     pub average_executions_per_sec: u32,
     pub bits_found_by_havoc: u64,
     pub bits_found_by_havoc_rec: u64,
@@ -56,6 +57,7 @@ impl GlobalSharedState {
             queue,
             bitmaps,
             execution_count: 0,
+            pass_rate: 0.0,
             average_executions_per_sec: 0,
             bits_found_by_havoc: 0,
             bits_found_by_havoc_rec: 0,
