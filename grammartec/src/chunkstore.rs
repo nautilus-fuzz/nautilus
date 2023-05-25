@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use rand::Rng;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::Write;
+use std::io::Read;
 use std::sync::atomic::AtomicBool;
 use std::sync::RwLock;
 
@@ -113,6 +115,23 @@ impl ChunkStore {
     #[must_use]
     pub fn trees(&self) -> usize {
         self.trees.len()
+    }
+    
+    pub fn get_chunk(&self)  -> Result<Vec<u8>,std::io::Error> {
+        let mut buffer :Vec<u8> = Vec::new();
+        if self.number_of_chunks < 2 {
+            return Ok(buffer)
+        }
+        let mut rng = rand::thread_rng();
+        let high = self.number_of_chunks as usize;
+        let id = rng.gen_range(0..high);
+        let path = format!(
+            "{}/outputs/chunks/chunk_{:09}",
+            self.work_dir,id
+        );
+        let mut file = File::open(path)?;
+        file.read_to_end(&mut buffer)?;
+        Ok(buffer)
     }
 }
 

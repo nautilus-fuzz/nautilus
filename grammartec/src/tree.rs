@@ -364,6 +364,15 @@ impl Tree {
         }
     }
 
+    pub fn generate_from_vec(&mut self,vec:&mut Vec<u8>, ruleid: RuleID){
+        let rid = RuleIDOrCustom::Custom(ruleid, vec.clone());
+        self.truncate();
+        self.rules.push(rid);
+        self.sizes.push(0);
+        self.paren.push(NodeID::from(0));
+        self.sizes[0] = self.rules.len();
+    }
+
     #[must_use]
     pub fn calc_recursions(&self, ctx: &Context) -> Option<Vec<RecursionInfo>> {
         let mut ret = Vec::new();

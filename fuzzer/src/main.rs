@@ -359,6 +359,7 @@ fn main() {
                     let bits_found_by_splice;
                     let bits_found_by_havoc;
                     let bits_found_by_havoc_rec;
+                    let total_found_path;
                     let last_found_asan;
                     let last_found_sig;
                     let last_timeout;
@@ -376,6 +377,14 @@ fn main() {
                         bits_found_by_splice = shared_state.bits_found_by_splice;
                         bits_found_by_havoc = shared_state.bits_found_by_havoc;
                         bits_found_by_havoc_rec = shared_state.bits_found_by_havoc_rec;
+                        total_found_path = bits_found_by_det
+                        + bits_found_by_gen
+                        + bits_found_by_havoc
+                        + bits_found_by_havoc
+                        + bits_found_by_havoc_rec
+                        + bits_found_by_min
+                        + bits_found_by_min_rec
+                        + bits_found_by_splice;
                         last_found_asan = shared_state.last_found_asan.clone();
                         last_found_sig = shared_state.last_found_sig.clone();
                         last_timeout = shared_state.last_timeout.clone();
@@ -480,6 +489,10 @@ fn main() {
                     println!(
                         "New paths found by Havoc Rec:    {}                       ",
                         bits_found_by_havoc_rec
+                    );
+                    println!(
+                        "Total paths found:    {}                       ",
+                        total_found_path
                     );
                     println!("------------------------------------------------------    ");
                     //println!("Global bitmap: {:?}", global_state.lock().expect("RAND_1887203473").bitmaps.get(&false).expect("RAND_1887203473"));

@@ -340,6 +340,12 @@ impl Context {
         tree.generate_from_rule(r, len, self);
         tree
     }
+
+    pub fn generate_tree_from_vec(&self,vec:&mut Vec<u8>,nt: NTermID, max_len: usize) -> Tree {
+        let mut tree = Tree::from_rule_vec(vec![], self);
+        tree.generate_from_vec(vec,self.get_random_rule_for_nt(nt, max_len));
+        tree
+    }
 }
 
 impl Default for Context {

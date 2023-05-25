@@ -67,6 +67,7 @@ pub struct Fuzzer {
     pub asan_found_by_det: u64,
     pub asan_found_by_det_afl: u64,
     pub asan_found_by_gen: u64,
+    pub total_found_path: usize,
     work_dir: String,
 }
 
@@ -112,6 +113,7 @@ impl Fuzzer {
             asan_found_by_det: 0,
             asan_found_by_det_afl: 0,
             asan_found_by_gen: 0,
+            total_found_path: 0,
             work_dir,
         }
     }
@@ -175,24 +177,31 @@ impl Fuzzer {
                     match exec_reason {
                         ExecutionReason::Havoc => {
                             self.bits_found_by_havoc += 1; /*print!("Havoc+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::HavocRec => {
                             self.bits_found_by_havoc_rec += 1; /*print!("HavocRec+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Min => {
                             self.bits_found_by_min += 1; /*print!("Min+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::MinRec => {
                             self.bits_found_by_min_rec += 1; /*print!("MinRec+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Splice => {
                             self.bits_found_by_splice += 1; /*print!("Splice+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Det => {
                             self.bits_found_by_det += 1; /*print!("Det+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Gen => {
                             self.bits_found_by_gen += 1; /*print!("Gen+")*/
+                            self.total_found_path += 1;
                         }
                     }
                 }
@@ -331,7 +340,7 @@ impl Fuzzer {
             let run_bitmap = self.forksrv.get_shared();
             for (i, &v) in old_bitmap.iter().enumerate() {
                 if run_bitmap[i] != v {
-                    println!("found fucky bit {i}");
+                    // println!("found fucky bit {i}");
                 }
             }
             new_bits.retain(|&i| run_bitmap[i] != 0);
