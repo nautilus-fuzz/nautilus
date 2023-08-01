@@ -16,4 +16,4 @@ regex-syntax = "0.6"
 serde = { version = "1", features = ["derive"] }
 loaded_dice = "0.2.2"
 num = "0.4"
-pyo3 = "0.18"
+pyo3 = "0.19"
