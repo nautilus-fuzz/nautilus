@@ -1,5 +1,5 @@
 Config(
-	//You probably want to change the follwoing options
+	//You probably want to change the following options
 	//File Paths
 	path_to_bin_target:                     "./test",
 	arguments: 				[ "@@"],	//"@@" will be exchanged with the path of a file containing the current input
@@ -18,7 +18,7 @@ Config(
 	//Thread Settings:
 	thread_size: 				4194304,
 
-	hide_output: true, //hide stdout of the target program. Sometimes usefull for debuging
+	hide_output: true, //hide stdout of the target program. Sometimes useful for debugging
 	
 	//Mutation Settings
 	number_of_generate_inputs:		100,	//see main.rs fuzzing_thread 
