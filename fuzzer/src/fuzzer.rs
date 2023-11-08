@@ -209,8 +209,7 @@ impl Fuzzer {
                     .last_timeout = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                 let mut file = File::create(format!(
                     "{}/outputs/timeout/{:09}{}",
-                    self.work_dir, self.execution_count,
-                    self.extension,
+                    self.work_dir, self.execution_count, self.extension,
                 ))
                 .expect("RAND_452993103");
                 tree.unparse_to(ctx, &mut file);
@@ -227,8 +226,7 @@ impl Fuzzer {
                         .last_found_sig = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                     let mut file = File::create(format!(
                         "{}/outputs/signaled/{sig:?}_{:09}{}",
-                        self.work_dir, self.execution_count, 
-                        self.extension,
+                        self.work_dir, self.execution_count, self.extension,
                     ))
                     .expect("RAND_3690294970");
                     tree.unparse_to(ctx, &mut file);

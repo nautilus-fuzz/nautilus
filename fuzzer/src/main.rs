@@ -283,7 +283,10 @@ fn main() {
         config.bitmap_size,
         config.extension.clone(),
     )));
-    let shared_chunkstore = Arc::new(ChunkStoreWrapper::new(config.path_to_workdir.clone(), config.extension.clone()));
+    let shared_chunkstore = Arc::new(ChunkStoreWrapper::new(
+        config.path_to_workdir.clone(),
+        config.extension.clone(),
+    ));
 
     let mut my_context;
     let grammar_path = matches
