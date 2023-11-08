@@ -73,6 +73,7 @@ pub struct Queue {
     pub bit_to_inputs: HashMap<usize, Vec<usize>>,
     pub current_id: usize,
     pub work_dir: String,
+    pub extension: String,
 }
 
 impl Queue {
@@ -107,8 +108,8 @@ impl Queue {
 
         //Create File for entry
         let mut file = File::create(format!(
-            "{}/outputs/queue/id:{:09},er:{exitreason:?}",
-            self.work_dir, self.current_id
+            "{}/outputs/queue/id:{:09},er:{exitreason:?}{}",
+            self.work_dir, self.current_id, self.extension,
         ))
         .expect("RAND_259979732");
         tree.unparse_to(ctx, &mut file);
@@ -131,13 +132,14 @@ impl Queue {
         }
     }
 
-    pub fn new(work_dir: String) -> Self {
+    pub fn new(work_dir: String, extension: String) -> Self {
         Queue {
             inputs: vec![],
             processed: vec![],
             bit_to_inputs: HashMap::new(),
             current_id: 0,
             work_dir,
+            extension,
         }
     }
 
@@ -172,8 +174,8 @@ impl Queue {
         {
             //If file was created for this entry, delete it.
             match fs::remove_file(format!(
-                "{}/outputs/queue/id:{:09},er:{:?}",
-                self.work_dir, item.id, item.exitreason
+                "{}/outputs/queue/id:{:09},er:{:?}{}",
+                self.work_dir, item.id, item.exitreason, self.extension
             )) {
                 Err(ref err) if err.kind() != ErrorKind::NotFound => {
                     println!("Error while deleting file: {err}");

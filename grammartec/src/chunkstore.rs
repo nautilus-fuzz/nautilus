@@ -35,9 +35,9 @@ pub struct ChunkStoreWrapper {
 }
 impl ChunkStoreWrapper {
     #[must_use]
-    pub fn new(work_dir: String) -> Self {
+    pub fn new(work_dir: String, extension: String) -> Self {
         ChunkStoreWrapper {
-            chunkstore: RwLock::new(ChunkStore::new(work_dir)),
+            chunkstore: RwLock::new(ChunkStore::new(work_dir, extension)),
             is_locked: AtomicBool::new(false),
         }
     }
@@ -50,17 +50,19 @@ pub struct ChunkStore {
     trees: Vec<Tree>,
     work_dir: String,
     number_of_chunks: usize,
+    extension: String,
 }
 
 impl ChunkStore {
     #[must_use]
-    pub fn new(work_dir: String) -> Self {
+    pub fn new(work_dir: String, extension: String) -> Self {
         ChunkStore {
             nts_to_chunks: HashMap::new(),
             seen_outputs: HashSet::new(),
             trees: vec![],
             work_dir,
             number_of_chunks: 0,
+            extension,
         }
     }
 
@@ -82,8 +84,8 @@ impl ChunkStore {
                     .or_insert_with(std::vec::Vec::new)
                     .push((id, n));
                 let mut file = File::create(format!(
-                    "{}/outputs/chunks/chunk_{:09}",
-                    self.work_dir, self.number_of_chunks
+                    "{}/outputs/chunks/chunk_{:09}{}",
+                    self.work_dir, self.number_of_chunks, self.extension
                 ))
                 .expect("RAND_596689790");
                 self.number_of_chunks += 1;
