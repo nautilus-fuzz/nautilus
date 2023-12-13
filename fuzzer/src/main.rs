@@ -106,6 +106,7 @@ fn fuzzing_thread(
         config.hide_output,
         config.timeout_in_millis,
         config.bitmap_size,
+        config.extension.clone(),
     );
     let mut state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
     state.ctx = ctx.clone();
@@ -126,6 +127,7 @@ fn fuzzing_thread(
                     config.hide_output,
                     config.timeout_in_millis,
                     config.bitmap_size,
+                    config.extension.clone(),
                 );
                 state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
                 state.ctx = ctx.clone();
@@ -150,6 +152,7 @@ fn fuzzing_thread(
                         config.hide_output,
                         config.timeout_in_millis,
                         config.bitmap_size,
+                        config.extension.clone(),
                     );
                     state = FuzzingState::new(fuzzer, config.clone(), cks.clone());
                     state.ctx = ctx.clone();
@@ -278,8 +281,12 @@ fn main() {
     let shared = Arc::new(Mutex::new(GlobalSharedState::new(
         config.path_to_workdir.clone(),
         config.bitmap_size,
+        config.extension.clone(),
     )));
-    let shared_chunkstore = Arc::new(ChunkStoreWrapper::new(config.path_to_workdir.clone()));
+    let shared_chunkstore = Arc::new(ChunkStoreWrapper::new(
+        config.path_to_workdir.clone(),
+        config.extension.clone(),
+    ));
 
     let mut my_context;
     let grammar_path = matches

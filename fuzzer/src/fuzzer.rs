@@ -68,6 +68,7 @@ pub struct Fuzzer {
     pub asan_found_by_det_afl: u64,
     pub asan_found_by_gen: u64,
     work_dir: String,
+    extension: String,
 }
 
 impl Fuzzer {
@@ -79,6 +80,7 @@ impl Fuzzer {
         hide_output: bool,
         timeout_in_millis: u64,
         bitmap_size: usize,
+        extension: String,
     ) -> Self {
         let fs = ForkServer::new(
             path.clone(),
@@ -86,6 +88,7 @@ impl Fuzzer {
             hide_output,
             timeout_in_millis,
             bitmap_size,
+            extension.clone(),
         );
         Fuzzer {
             forksrv: fs,
@@ -113,6 +116,7 @@ impl Fuzzer {
             asan_found_by_det_afl: 0,
             asan_found_by_gen: 0,
             work_dir,
+            extension,
         }
     }
 
@@ -161,9 +165,10 @@ impl Fuzzer {
                         .expect("RAND_202860771")
                         .last_found_asan = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                     let mut file = File::create(format!(
-                        "{}/outputs/signaled/ASAN_{:09}_{}",
+                        "{}/outputs/signaled/ASAN_{:09}_{}{}",
                         self.work_dir,
                         self.execution_count,
+                        self.extension,
                         thread::current().name().expect("RAND_4086695190")
                     ))
                     .expect("RAND_3096222153");
@@ -203,8 +208,8 @@ impl Fuzzer {
                     .expect("RAND_1706238230")
                     .last_timeout = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                 let mut file = File::create(format!(
-                    "{}/outputs/timeout/{:09}",
-                    self.work_dir, self.execution_count
+                    "{}/outputs/timeout/{:09}{}",
+                    self.work_dir, self.execution_count, self.extension,
                 ))
                 .expect("RAND_452993103");
                 tree.unparse_to(ctx, &mut file);
@@ -220,8 +225,8 @@ impl Fuzzer {
                         .expect("RAND_4287051369")
                         .last_found_sig = Local::now().format("[%Y-%m-%d] %H:%M:%S").to_string();
                     let mut file = File::create(format!(
-                        "{}/outputs/signaled/{sig:?}_{:09}",
-                        self.work_dir, self.execution_count
+                        "{}/outputs/signaled/{sig:?}_{:09}{}",
+                        self.work_dir, self.execution_count, self.extension,
                     ))
                     .expect("RAND_3690294970");
                     tree.unparse_to(ctx, &mut file);

@@ -46,8 +46,8 @@ pub struct GlobalSharedState {
 }
 
 impl GlobalSharedState {
-    pub fn new(work_dir: String, bitmap_size: usize) -> Self {
-        let queue = Queue::new(work_dir);
+    pub fn new(work_dir: String, bitmap_size: usize, extension: String) -> Self {
+        let queue = Queue::new(work_dir, extension);
         //Initialize Empty bitmaps for crashes and normal executions
         let mut bitmaps = HashMap::new();
         bitmaps.insert(false, vec![0; bitmap_size]);

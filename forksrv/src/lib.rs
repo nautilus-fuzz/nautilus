@@ -65,8 +65,12 @@ impl ForkServer {
         hide_output: bool,
         timeout_in_millis: u64,
         bitmap_size: usize,
+        extension: String,
     ) -> Self {
-        let inp_file = tempfile::NamedTempFile::new().expect("couldn't create temp file");
+        let inp_file = tempfile::Builder::new()
+            .suffix(&extension.clone())
+            .tempfile()
+            .expect("couldn't create temp file");
         let (inp_file, in_path) = inp_file
             .keep()
             .expect("couldn't persists temp file for input");

@@ -109,8 +109,8 @@ impl FuzzingState {
 
             //Update file corresponding to this entry
             let mut file = File::create(format!(
-                "{}/outputs/queue/id:{:09},er:{:?}.min", //TODO FIX PATH TO WORKDIR
-                &self.config.path_to_workdir, input.id, input.exitreason
+                "{}/outputs/queue/id:{:09},er:{:?}.min{}", //TODO FIX PATH TO WORKDIR
+                &self.config.path_to_workdir, input.id, input.exitreason, &self.config.extension
             ))
             .expect("Could not create queue entry, are you sure $workdir/outputs exists?");
             input.tree.unparse_to(ctx, &mut file);

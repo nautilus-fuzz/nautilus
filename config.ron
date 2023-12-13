@@ -9,6 +9,7 @@ Config(
 
 	number_of_threads:			1,
 	timeout_in_millis:			200,
+	extension:				"",
 
 
 	//The rest of the options are probably not something you want to change... 
