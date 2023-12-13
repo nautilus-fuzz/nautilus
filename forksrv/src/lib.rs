@@ -141,7 +141,7 @@ impl ForkServer {
                     unistd::close(null).expect("couldn't close /dev/null");
                 }
                 println!("EXECVE {path:?} {args:?} {env:?}");
-                unistd::execve(&path, &args, &env).expect("couldn't execve afl-qemu-tarce");
+                unistd::execve(&path, &args, &env).expect("couldn't execve afl-qemu-trace");
                 unreachable!();
             }
         }
