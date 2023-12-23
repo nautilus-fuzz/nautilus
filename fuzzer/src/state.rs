@@ -19,10 +19,12 @@ use std::fs::File;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::Instant;
+use std::io::ErrorKind;
 
 use grammartec::chunkstore::ChunkStoreWrapper;
 use grammartec::context::Context;
 use grammartec::mutator::Mutator;
+use grammartec::rule::{RegExpRule, Rule};
 use grammartec::tree::{TreeLike, TreeMutation};
 
 use config::Config;
@@ -205,7 +207,41 @@ impl FuzzingState {
     pub fn generate_random(&mut self, nt: &str) -> Result<(), SubprocessError> {
         let nonterm = self.ctx.nt_id(nt);
         let len = self.ctx.get_random_len_for_nt(&nonterm);
-        let tree = self.ctx.generate_tree_from_nt(nonterm, len);
+        let mut tree = self.ctx.generate_tree_from_nt(nonterm, len);
+        let chunk = self.cks.chunkstore.read().expect("read error").get_chunk();
+        let mut code: Vec<u8> = tree.unparse_to_vec(&self.ctx);
+        let chunk = match chunk {
+            Ok(chunk) => chunk,
+            Err(error) => match error.kind() {
+                ErrorKind::NotFound => {
+                    code.clone()
+                },
+                e => panic!("Other error: {:?}",e)
+            }
+        };
+        let rid = self.ctx.get_random_rule_for_nt(nonterm, len);
+        let rule = self.ctx.get_rule(rid);
+        match rule {
+            Rule::Plain(..) | Rule::Script(..) => {
+                
+            }
+            Rule::RegExp(RegExpRule { .. }) => {
+                let mut i: usize= 0;
+                let total_path = self.fuzzer.total_found_path;
+                if code != chunk && total_path > 1{
+                    while i < total_path - 1 {
+                        let len = chunk.len();
+                        if len ==  0 {
+                            break;
+                        }
+                        code[i] = chunk[i];
+                        i+=1;
+                    }
+                    tree = self.ctx.generate_tree_from_vec(&mut code, nonterm, len);
+                }
+            }
+        }
+        
         self.fuzzer
             .run_on_with_dedup(&tree, ExecutionReason::Gen, &self.ctx)?;
         Ok(())

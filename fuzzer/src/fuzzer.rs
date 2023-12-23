@@ -22,6 +22,10 @@ use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
+use std::process::{Command};
+use std::path::Path;
+use std::fs;
+
 
 use chrono::Local;
 use forksrv::exitreason::ExitReason;
@@ -30,6 +34,9 @@ use forksrv::ForkServer;
 use grammartec::context::Context;
 use grammartec::tree::TreeLike;
 use shared_state::GlobalSharedState;
+
+extern crate tempfile;
+
 
 #[derive(Debug, Clone, Copy)]
 pub enum ExecutionReason {
@@ -49,6 +56,8 @@ pub struct Fuzzer {
     pub global_state: Arc<Mutex<GlobalSharedState>>,
     pub target_path: String,
     pub target_args: Vec<String>,
+    pub total_testcast_count: u64,
+    pub pass_rate: f64,
     pub execution_count: u64,
     pub average_executions_per_sec: f32,
     pub bits_found_by_havoc: u64,
@@ -67,6 +76,7 @@ pub struct Fuzzer {
     pub asan_found_by_det: u64,
     pub asan_found_by_det_afl: u64,
     pub asan_found_by_gen: u64,
+    pub total_found_path: usize,
     work_dir: String,
     extension: String,
 }
@@ -97,6 +107,8 @@ impl Fuzzer {
             global_state,
             target_path: path,
             target_args: args,
+            total_testcast_count: 0,
+            pass_rate: 0.0,
             execution_count: 0,
             average_executions_per_sec: 0.0,
             bits_found_by_havoc: 0,
@@ -115,6 +127,7 @@ impl Fuzzer {
             asan_found_by_det: 0,
             asan_found_by_det_afl: 0,
             asan_found_by_gen: 0,
+            total_found_path: 0,
             work_dir,
             extension,
         }
@@ -180,24 +193,31 @@ impl Fuzzer {
                     match exec_reason {
                         ExecutionReason::Havoc => {
                             self.bits_found_by_havoc += 1; /*print!("Havoc+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::HavocRec => {
                             self.bits_found_by_havoc_rec += 1; /*print!("HavocRec+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Min => {
                             self.bits_found_by_min += 1; /*print!("Min+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::MinRec => {
                             self.bits_found_by_min_rec += 1; /*print!("MinRec+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Splice => {
                             self.bits_found_by_splice += 1; /*print!("Splice+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Det => {
                             self.bits_found_by_det += 1; /*print!("Det+")*/
+                            self.total_found_path += 1;
                         }
                         ExecutionReason::Gen => {
                             self.bits_found_by_gen += 1; /*print!("Gen+")*/
+                            self.total_found_path += 1;
                         }
                     }
                 }
@@ -258,18 +278,70 @@ impl Fuzzer {
     }
 
     pub fn exec_raw(&mut self, code: &[u8]) -> Result<(ExitReason, u32), SubprocessError> {
-        self.execution_count += 1;
+        
 
         let start = Instant::now();
+        
+        let mut path = self.target_path.clone();
+        path += "c";
+        let mut luac_file = self.work_dir.clone();
+        luac_file += "/testcase.luac";
+        let test_file = tempfile::NamedTempFile::new().expect("couldn't create temp file");
+        let (mut test_file, test_path) = test_file
+            .keep()
+            .expect("couldn't persists temp file for input");
 
-        let exitreason = self.forksrv.run(code)?;
+        let result = test_file.write_all(code);
+        match result {
+            Ok(result)=>result,
+            Err(error) => panic!("Error write file: {:?}",error)
+        }
 
-        let execution_time = start.elapsed().subsec_nanos();
+        let args = ["-o",&luac_file,test_path.to_str().unwrap()];
+        let command = format!("{} {}",path,args.join(" "));
+        Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output()
+            .expect("failed to execute luac");
+        
+        let luac_path = Path::new(&luac_file);
+        let is_exist: bool;
+        if luac_path.exists() {
+            is_exist = true;
+            if let Err(err) = fs::remove_file(luac_file) {
+                println!("Error deleting file: {:?}",err);
+            }
+            else{
 
-        self.average_executions_per_sec = self.average_executions_per_sec * 0.9
-            + ((1.0 / (execution_time as f32)) * 1_000_000_000.0) * 0.1;
+            }
+        }
+        else{
+            is_exist = false;
+        }
+        
+        self.total_testcast_count+=1;
 
-        Ok((exitreason, execution_time))
+        if is_exist {
+            let exitreason = self.forksrv.run(code)?;
+            self.execution_count += 1;
+
+            let execution_time = start.elapsed().subsec_nanos();
+
+            self.average_executions_per_sec = self.average_executions_per_sec * 0.9
+                + ((1.0 / (execution_time as f32)) * 1_000_000_000.0) * 0.1;
+
+            if self.total_testcast_count != 0 {
+                self.pass_rate = self.execution_count as f64 / self.total_testcast_count as f64;
+            }
+            Ok((exitreason, execution_time))
+        }
+        else {
+            if self.total_testcast_count != 0 {
+                self.pass_rate = self.execution_count as f64 / self.total_testcast_count as f64;
+            }
+            Ok((ExitReason::Normal(0),0))
+        }
     }
 
     fn input_is_known(&mut self, code: &[u8]) -> bool {
@@ -336,7 +408,7 @@ impl Fuzzer {
             let run_bitmap = self.forksrv.get_shared();
             for (i, &v) in old_bitmap.iter().enumerate() {
                 if run_bitmap[i] != v {
-                    println!("found fucky bit {i}");
+                    // println!("found fucky bit {i}");
                 }
             }
             new_bits.retain(|&i| run_bitmap[i] != 0);
