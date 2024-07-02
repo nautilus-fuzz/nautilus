@@ -89,6 +89,16 @@ with Nautilus. Note that this is one way. AFL imports Nautilus inputs, but not t
 cargo run --release -- -o /tmp/workdir -- ./test @@
 ```
 
+## Running with AFL++
+
+Nautilus is quite old now and does not support modern AFL++.
+To use a current version of AFL++ together with Nautilus requires the following steps:
+
+1. A current version of AFL++ (Github state as of 1st July 2024)
+2. Compile your target with `AFL_LLVM_INSTRUMENT=CLASSIC CC=afl-clang-fast CXX=afl-clang-fast++ ...`
+3. Run Nautilus with `AFL_OLD_FORKSERVER=1`
+
+
 ## Trophies
 
 *  https://github.com/Microsoft/ChakraCore/issues/5503
