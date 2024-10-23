@@ -17,7 +17,7 @@ Version 2.0 has added many improvements to this early prototype and is now 100% 
 * Better ability to avoid generating the same very short inputs over and over
 * Massive cleanup of the code base
 * Helpful error output on invalid grammars
-* Fixed a bug in the the timeout code that occasionally deadlocked the fuzzer
+* Fixed a bug in the timeout code that occasionally deadlocked the fuzzer
 
 
 ## How Does Nautilus Work?
@@ -74,7 +74,7 @@ ctx.regex("TAG","[a-z]+")
 To test your grammars you can use the generator:
 
 ```
-$ cargo run --bin generator -- -g grammars/grammar_py_exmaple.py -t 100 
+$ cargo run --bin generator -- -g grammars/grammar_py_example.py -t 100 
 <document><some_tag foo=bar><other_tag foo=bar><other_tag foo=bar><some_tag foo=bar></some_tag></other_tag><some_tag foo=bar><other_tag foo=bar></other_tag></some_tag><other_tag foo=bar></other_tag><some_tag foo=bar></some_tag></other_tag><other_tag foo=bar></other_tag><some_tag foo=bar></some_tag></some_tag></document>
 ```
 
