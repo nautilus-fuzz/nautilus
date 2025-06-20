@@ -2,7 +2,9 @@
 // Copyright (C) 2024  Daniel Teuchert, Cornelius Aschermann, Sergej Schumilo
 
 use std::collections::HashSet;
+use std::fs;
 use std::fs::File;
+use std::io::ErrorKind;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::Instant;
@@ -92,14 +94,26 @@ impl FuzzingState {
             self.cks.is_locked.store(false, Ordering::Release);
 
             input.recursions = input.tree.calc_recursions(ctx);
-
+            //let timestamp = start_time.elapsed();
             //Update file corresponding to this entry
             let mut file = File::create(format!(
-                "{}/outputs/queue/id:{:09},er:{:?}.min", //TODO FIX PATH TO WORKDIR
-                &self.config.path_to_workdir, input.id, input.exitreason
+                "{}/outputs/queue/id:{:06},time:{},er:{:?}.min", //TODO FIX PATH TO WORKDIR
+                &self.config.path_to_workdir, input.id, input.timestamp, input.exitreason
             ))
             .expect("Could not create queue entry, are you sure $workdir/outputs exists?");
             input.tree.unparse_to(&ctx, &mut file);
+
+            // Delete the original file.
+            match fs::remove_file(format!(
+                "{}/outputs/queue/id:{:06},time:{},er:{:?}",
+                &self.config.path_to_workdir, input.id, input.timestamp, input.exitreason
+            )) {
+                Err(ref err) if err.kind() != ErrorKind::NotFound => {
+                    println!("Error while deleting file: {}", err);
+                }
+                _ => {}
+            }
+
             return Ok(true);
         }
 

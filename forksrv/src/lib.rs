@@ -119,7 +119,11 @@ impl ForkServer {
                     CString::new("ASAN_OPTIONS=exitcode=223,abort_on_erro=true,detect_leaks=0")
                         .expect("RAND_2089158993");
 
-                let env = vec![shm_id, asan_settings];
+                let afl_map_size = format!("AFL_MAP_SIZE={}", bitmap_size);
+                let afl_settings =
+                    CString::new(afl_map_size)
+                        .expect("RAND_2089158994");
+                let env = vec![shm_id, asan_settings, afl_settings];
 
                 if hide_output {
                     let null = fcntl::open("/dev/null", fcntl::OFlag::O_RDWR, stat::Mode::empty())

@@ -297,13 +297,14 @@ impl Fuzzer {
                 let old_bitmap: Vec<u8> = self.forksrv.get_shared().to_vec();
                 self.check_deterministic_behaviour(&old_bitmap, &mut new_bits, &code)?;
                 if new_bits.len() > 0 {
+                    let start_time: Instant = self.global_state.lock().unwrap().start_time;
                     final_bits = Some(new_bits);
                     let tree = tree_like.to_tree(ctx);
                     self.global_state
                         .lock()
                         .expect("RAND_2835014626")
                         .queue
-                        .add(tree, old_bitmap, exitreason, ctx, execution_time);
+                        .add(tree, old_bitmap, exitreason, ctx, execution_time, start_time);
                     //println!("Entry added to queue! New bits: {:?}", bits.clone().expect("RAND_2243482569"));
                 }
             }
@@ -322,7 +323,7 @@ impl Fuzzer {
             let run_bitmap = self.forksrv.get_shared();
             for (i, &v) in old_bitmap.iter().enumerate() {
                 if run_bitmap[i] != v {
-                    println!("found fucky bit {}", i);
+                    //println!("found fucky bit {}", i);
                 }
             }
             new_bits.retain(|&i| run_bitmap[i] != 0);

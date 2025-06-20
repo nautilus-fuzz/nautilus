@@ -6,6 +6,8 @@ use std::collections::HashSet;
 use std::fs;
 use std::fs::File;
 use std::io::ErrorKind;
+use std::time::Instant;
+use shared_state::GlobalSharedState;
 
 use forksrv::exitreason::ExitReason;
 use grammartec::context::Context;
@@ -29,6 +31,7 @@ pub struct QueueItem {
     pub state: InputState,
     pub recursions: Option<Vec<RecursionInfo>>,
     pub execution_time: u32,
+    pub timestamp: u128,
 }
 
 impl QueueItem {
@@ -39,6 +42,7 @@ impl QueueItem {
         all_bits: Vec<u8>,
         exitreason: ExitReason,
         execution_time: u32,
+        timestamp: u128,
     ) -> Self {
         return QueueItem {
             id,
@@ -49,6 +53,7 @@ impl QueueItem {
             state: InputState::Init(0),
             recursions: None,
             execution_time,
+            timestamp,
         };
     }
 }
@@ -69,6 +74,7 @@ impl Queue {
         exitreason: ExitReason,
         ctx: &Context,
         execution_time: u32,
+        start_time: Instant,
     ) {
         if all_bits
             .iter()
@@ -90,11 +96,11 @@ impl Queue {
                     .push(self.current_id);
             }
         }
-
+        let timestamp = start_time.elapsed().as_millis();
         //Create File for entry
         let mut file = File::create(format!(
-            "{}/outputs/queue/id:{:09},er:{:?}",
-            self.work_dir, self.current_id, exitreason
+            "{}/outputs/queue/id:{:06},time:{},er:{:?}",
+            self.work_dir, self.current_id, timestamp, exitreason
         ))
         .expect("RAND_259979732");
         tree.unparse_to(&ctx, &mut file);
@@ -107,6 +113,7 @@ impl Queue {
             all_bits,
             exitreason,
             execution_time,
+            timestamp,
         ));
 
         //Increase current_id
@@ -160,15 +167,6 @@ impl Queue {
             .all(|(i, elem)| (*elem == 0) || self.bit_to_inputs.contains_key(&i))
         {
             //If file was created for this entry, delete it.
-            match fs::remove_file(format!(
-                "{}/outputs/queue/id:{:09},er:{:?}",
-                self.work_dir, item.id, item.exitreason
-            )) {
-                Err(ref err) if err.kind() != ErrorKind::NotFound => {
-                    println!("Error while deleting file: {}", err);
-                }
-                _ => {}
-            }
             return;
         }
 

@@ -266,9 +266,11 @@ fn main() {
         );
     }
 
+    let start_time = Instant::now();
     let shared = Arc::new(Mutex::new(GlobalSharedState::new(
         config.path_to_workdir.clone(),
         config.bitmap_size,
+        start_time,
     )));
     let shared_chunkstore = Arc::new(ChunkStoreWrapper::new(config.path_to_workdir.clone()));
 
@@ -314,6 +316,10 @@ fn main() {
             .expect("Could not create folder in workdir");
     }
 
+    // Create an empty file named "is_main_node" in the workdir: Expected by secondary AFL instances.
+    let empty_file_path = format!("{}/outputs/{}", config.path_to_workdir, "is_main_node");
+    fs::File::create(empty_file_path).expect("Could not create empty file");
+
     //Start fuzzing threads
     let mut thread_number = 0;
     let threads = (0..config.number_of_threads).map(|_| {
@@ -335,7 +341,6 @@ fn main() {
         thread::Builder::new()
             .name("status_thread".to_string())
             .spawn(move || {
-                let start_time = Instant::now();
                 thread::sleep(time::Duration::from_secs(1));
                 print!("{}[2J", 27 as char);
                 print!("{}[H", 27 as char);

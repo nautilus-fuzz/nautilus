@@ -8,7 +8,7 @@ Config(
 	path_to_workdir:                        "/tmp/workdir",
 
 	number_of_threads:			1,
-	timeout_in_millis:			200,
+	timeout_in_millis:			1000,
 
 
 	//The rest of the options are probably not something you want to change... 
