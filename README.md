@@ -45,7 +45,7 @@ cargo run /path/to/AFLplusplus/afl-qemu-trace -- ./test_bin @@
 
 ## Examples
 
-Here, we use python to generate a grammar for valid xml-like inputs. Notice the use of a script rule to ensure the the opening
+Here, we use python to generate a grammar for valid xml-like inputs. Notice the use of a script rule to ensure the opening
 and closing tags match.
 
 ```python 
